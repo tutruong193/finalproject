@@ -5,9 +5,11 @@ import SiderComponent from "../SiderComponent/SiderComponent"; // Import SiderCo
 const DefaultComponent = ({ children }) => {
   return (
     <div>
-      <Layout>
+      <Layout style={{ minHeight: "100vh" }}>
         <SiderComponent /> {/* Sử dụng SiderComponent */}
-        <Layout>{children}</Layout>
+        <Layout style={{ marginLeft: "15%" }}> {/* Đẩy content bên phải sang bên phải Sider */}
+          {children}
+        </Layout>
       </Layout>
     </div>
   );

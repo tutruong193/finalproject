@@ -42,7 +42,7 @@ const SiderComponent = () => {
   ];
 
   return (
-    <Sider width="15%" className="custom-sider">
+    <Sider width="15%" className="custom-sider" collapsed={false}>
       <div className="logo-menu-container">
         <LogoComponent />
         <Menu
