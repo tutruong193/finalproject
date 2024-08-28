@@ -1,0 +1,59 @@
+.custom-menu .ant-menu-item {
+    height: 60px; /* Chiều cao cố định cho các item */
+    line-height: 60px; /* Căn giữa nội dung theo chiều dọc */
+    padding: 0 16px; /* Padding trái và phải cho các item */
+    display: flex; /* Sử dụng flexbox để căn chỉnh nội dung */
+    align-items: center; /* Căn giữa nội dung theo chiều dọc */
+    gap: 10px; /* Khoảng cách giữa icon và text */
+    overflow: hidden; /* Đảm bảo không bị tràn khi thu nhỏ */
+    max-width: 100%; /* Chiều rộng tối đa của item */
+    min-width: 0; /* Chiều rộng tối thiểu của item */
+    transition: max-width 0.3s ease; /* Thêm hiệu ứng chuyển đổi mượt mà */
+  }
+  
+  .custom-menu .ant-menu-item .ant-menu-title-content {
+    display: flex;
+    justify-content: flex-start;
+  }
+  
+  .custom-menu .ant-menu-item .ant-menu-item-content .ant-menu-title-content {
+    white-space: nowrap; /* Ngăn không cho tiêu đề xuống dòng */
+    overflow: hidden; /* Ẩn phần tiêu đề vượt quá chiều rộng */
+    text-overflow: ellipsis; /* Thêm dấu ba chấm khi tiêu đề bị cắt */
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .custom-menu .ant-menu-item {
+      height: 60px; /* Đặt chiều cao tự động trên màn hình nhỏ hơn */
+      line-height: 1.5; /* Căn giữa nội dung theo chiều dọc với line-height tự động */
+      padding: 10px 16px; /* Tăng padding để cải thiện không gian trên màn hình nhỏ hơn */
+      font-size: 14px; /* Điều chỉnh kích thước font cho màn hình nhỏ */
+      gap: 8px; /* Giữ khoảng cách giữa icon và text khi màn hình nhỏ hơn */
+    }
+  
+    .custom-menu .ant-menu-item .ant-menu-title-content {
+      display: none; /* Ẩn tiêu đề trên màn hình nhỏ */
+    }
+  
+    .custom-menu .ant-menu-item:hover .ant-menu-title-content {
+      display: block; /* Hiển thị tiêu đề khi hover trên màn hình nhỏ */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .custom-menu .ant-menu-item {
+      padding: 8px 12px; /* Điều chỉnh padding cho màn hình rất nhỏ */
+      font-size: 12px; /* Điều chỉnh kích thước font cho màn hình rất nhỏ */
+      gap: 6px; /* Giảm khoảng cách giữa icon và text cho màn hình rất nhỏ */
+    }
+  
+    .custom-menu .ant-menu-item .ant-menu-title-content {
+      display: none; /* Ẩn tiêu đề trên màn hình rất nhỏ */
+    }
+  
+    .custom-menu .ant-menu-item:hover .ant-menu-title-content {
+      display: block; /* Hiển thị tiêu đề khi hover trên màn hình rất nhỏ */
+    }
+  }
+  

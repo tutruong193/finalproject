@@ -1,0 +1,60 @@
+/* LogoComponent.css */
+.logo-container {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    color: black;
+    padding: 10px;
+  }
+  
+  .logo-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    font-family: 'Raleway', 'Helvetica', 'sans-serif';
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 13px;
+    text-decoration: none;
+    color: black;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  
+  .logo-image {
+    display: none; /* Mặc định ẩn ảnh logo */
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .logo-container {
+        display: flex;
+        align-content: center;
+        justify-content: center;
+        color: black;
+        padding: 10px;
+        height: 60px;
+      }
+    .logo-text {
+      display: none; 
+      /* Ẩn văn bản trên màn hình nhỏ hơn */
+    }
+  
+    .logo-image {
+      display: flex;
+      align-content: center;
+      justify-content: center; /* Hiển thị ảnh logo trên màn hình nhỏ hơn */
+    }
+  }
+  
+  @media (min-width: 769px) {
+    .logo-image {
+      display: none; /* Ẩn ảnh logo trên màn hình lớn hơn */
+    }
+  }
+  
