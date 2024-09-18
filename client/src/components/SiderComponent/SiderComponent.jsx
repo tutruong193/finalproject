@@ -1,55 +1,24 @@
 import React from "react";
 import { Layout, Menu, Button } from "antd";
-import {
-  HomeOutlined,
-  WechatWorkOutlined,
-  BellOutlined,
-  SearchOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
 import LogoComponent from "../LogoComponent/LogoComponent";
 import "./style.css"; // Import file CSS
 
 const { Sider } = Layout;
 
-const SiderComponent = () => {
-  const items = [
-    {
-      key: "1",
-      icon: <HomeOutlined />,
-      label: "Home",
-    },
-    {
-      key: "2",
-      icon: <SearchOutlined />,
-      label: "Search",
-    },
-    {
-      key: "3",
-      icon: <UserOutlined />,
-      label: "Profile",
-    },
-    {
-      key: "4",
-      icon: <WechatWorkOutlined />,
-      label: "Message",
-    },
-    {
-      key: "5",
-      icon: <BellOutlined />,
-      label: "Notification",
-    },
-  ];
-
+const SiderComponent = ({items, defaultSelectedKeys, setSelectedKey}) => {
+  const handleMenuClick = (e) => {
+    setSelectedKey(e.key); 
+  };
   return (
     <Sider width="15%" className="custom-sider" collapsed={false}>
       <div className="logo-menu-container">
         <LogoComponent />
         <Menu
-          defaultSelectedKeys={["1"]}
+          defaultSelectedKeys={defaultSelectedKeys}
           mode="inline"
           items={items}
           className="custom-menu"
+          onClick={handleMenuClick}
         />
       </div>
       <div className="button-container">

@@ -6,7 +6,6 @@
   color: #000; /* Đổi màu chữ từ trắng thành đen để có thể thấy nội dung trên nền trắng */
   height: 100vh;
   background-color: white !important;
-  border-right: solid 1px black;
   display: flex; /* Sử dụng Flexbox để căn chỉnh các phần tử trong Sider */
   flex-direction: column; /* Căn chỉnh các phần tử theo chiều dọc */
   box-shadow: 1px 10px 8px #888888;

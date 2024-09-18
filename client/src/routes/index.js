@@ -1,21 +1,23 @@
-import HomePage from "../pages/HomePage/HomePage";
+import AdminPage from "../pages/Admin/AdminPage";
+import LoginPage from "../pages/LoginPage/LoginPage";
 import NotPoundPage from "../pages/NotFoundPage/NotPoundPage";
-import ProfilePage from "../pages/ProfilePage/ProfilePage";
+import UserPage from "../pages/UserPage/UserPage";
 
 export const routes = [
   {
-    path: "/",
-    page: HomePage,
-    isShowSider: true,
+    path: "/admin",
+    page: AdminPage,
   },
   {
-    path: "/profile",
-    page: ProfilePage,
-    isShowSider: true,
+    path: "/user",
+    page: UserPage,
+  },
+  {
+    path: "/Login",
+    page: LoginPage,
   },
   {
     path: "*",
     page: NotPoundPage,
-    isShowHeader: false,
   },
 ];

@@ -10,7 +10,7 @@ function App() {
         <Routes>
           {routes.map((route) => {
             const Page = route.page;
-            const Layout = route.isShowSider ? DefaultComponent : Fragment;
+            const Layout =  DefaultComponent ;
             return (
               <Route
                 path={route.path}
