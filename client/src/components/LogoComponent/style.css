@@ -1,60 +1,47 @@
 /* LogoComponent.css */
 .logo-container {
-    display: flex;
-    align-content: center;
-    justify-content: center;
-    color: black;
-    padding: 10px;
+  display: flex;
+  align-items: center; /* Căn giữa theo chiều dọc */
+  justify-content: flex-start; /* Căn giữa theo chiều ngang */
+  flex-wrap: nowrap; /* Ngăn chặn việc gói gọn */
+  color: black;
+  padding: 10px 0px;
+}
+
+.logo-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+  font-family: 'Raleway', 'Helvetica', 'sans-serif';
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 13px;
+  text-decoration: none;
+  color: black;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.logo-image {
+  width: 40px;
+  height: 40px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .logo-container {
+    flex-direction: column; /* Đặt hướng của các phần tử theo chiều dọc trên màn hình nhỏ */
+    height: auto; /* Tự động điều chỉnh chiều cao */
   }
   
   .logo-text {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 60px;
-    font-family: 'Raleway', 'Helvetica', 'sans-serif';
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    font-size: 13px;
-    text-decoration: none;
-    color: black;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+    display: none; /* Ẩn văn bản trên màn hình nhỏ hơn */
   }
   
   .logo-image {
-    display: none; /* Mặc định ẩn ảnh logo */
-    width: 20px;
-    height: 20px;
+    display: block; /* Hiển thị ảnh logo trên màn hình nhỏ hơn */
   }
-  
-  /* Responsive styles */
-  @media (max-width: 768px) {
-    .logo-container {
-        display: flex;
-        align-content: center;
-        justify-content: center;
-        color: black;
-        padding: 10px;
-        height: 60px;
-      }
-    .logo-text {
-      display: none; 
-      /* Ẩn văn bản trên màn hình nhỏ hơn */
-    }
-  
-    .logo-image {
-      display: flex;
-      align-content: center;
-      justify-content: center; /* Hiển thị ảnh logo trên màn hình nhỏ hơn */
-    }
-  }
-  
-  @media (min-width: 769px) {
-    .logo-image {
-      display: none; /* Ẩn ảnh logo trên màn hình lớn hơn */
-    }
-  }
-  
+}

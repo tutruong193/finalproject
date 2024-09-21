@@ -10,7 +10,7 @@ const SiderComponent = ({items, defaultSelectedKeys, setSelectedKey}) => {
     setSelectedKey(e.key); 
   };
   return (
-    <Sider width="15%" className="custom-sider" collapsed={false}>
+    <Sider width="17%" className="custom-sider" collapsed={false}>
       <div className="logo-menu-container">
         <LogoComponent />
         <Menu

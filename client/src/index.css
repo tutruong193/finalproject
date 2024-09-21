@@ -11,3 +11,9 @@ code {
 html{
   font-size: 100%;
 }
+h2{
+  color: #495057;
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+  margin: 0;
+}

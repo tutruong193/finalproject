@@ -1,5 +1,5 @@
 import React from "react";
-import cbum from "../../assets/cbum.jpg";
+import cbum from "../../assets/logo.png";
 const LoginPage = () => {
   return (
     <div className="body">

@@ -1,6 +1,7 @@
 import AdminPage from "../pages/Admin/AdminPage";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import NotPoundPage from "../pages/NotFoundPage/NotPoundPage";
+import TaskPage from "../pages/UserPage/TaskPage/TaskPage";
 import UserPage from "../pages/UserPage/UserPage";
 
 export const routes = [
@@ -13,7 +14,11 @@ export const routes = [
     page: UserPage,
   },
   {
-    path: "/Login",
+    path: "/task",
+    page: TaskPage,
+  },
+  {
+    path: "/login",
     page: LoginPage,
   },
   {
