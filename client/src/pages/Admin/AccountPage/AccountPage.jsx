@@ -5,7 +5,6 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { Button, Table, Tag } from "antd";
-import "./AccountPage.css";
 const AccountPage = () => {
   const columns = [
     {

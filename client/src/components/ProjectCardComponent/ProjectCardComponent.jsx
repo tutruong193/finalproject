@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  EllipsisOutlined,
-} from "@ant-design/icons";
-import "./ProjectCardComponent.css";
+import { EllipsisOutlined } from "@ant-design/icons";
 import { Card, Avatar } from "antd";
 const ProjectCardComponent = ({
   add_dated,

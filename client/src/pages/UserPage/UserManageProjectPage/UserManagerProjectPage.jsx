@@ -5,7 +5,6 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { Input, Button, Row, Col } from "antd";
-import "./UserManagerProjectPage.css";
 import ProjectCardComponent from "../../../components/ProjectCardComponent/ProjectCardComponent";
 import { useNavigate } from "react-router-dom";
 const UserManagerProjectPage = () => {

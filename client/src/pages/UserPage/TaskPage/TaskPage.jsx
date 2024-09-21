@@ -6,8 +6,6 @@ import {
 } from "@ant-design/icons";
 import { Input, Button, Row, Col, Radio } from "antd";
 import TaskCardComponent from "../../../components/TaskCardComponent/TaskCardComponent";
-import "./TaskPage.css"; // Import file CSS
-
 const TaskPage = () => {
   const [statusValue, setStatusValue] = useState("all"); // giá trị trạng thái đã chọn
   const [orderValue, setOrderValue] = useState("ascending"); // giá trị thứ tự đã chọn

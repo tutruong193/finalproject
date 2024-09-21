@@ -17,3 +17,277 @@ h2{
   font-family: Roboto, sans-serif;
   margin: 0;
 }
+/* component */
+/* header */
+.container-header{
+  width: 100%;
+    height: 56px;
+    box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+.container-avatar{
+  display: flex;
+  align-items: center;
+  gap:10px;
+}
+/*logo*/
+.container-logo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap; 
+  color: black;
+  padding: 10px 0px;
+}
+
+.logo-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+  font-family: 'Raleway', 'Helvetica', 'sans-serif';
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 13px;
+  text-decoration: none;
+  color: black;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.logo-image {
+  width: 40px;
+  height: 40px;
+}
+@media (max-width: 768px) {
+  .logo-container {
+    flex-direction: column; 
+    height: auto;
+  }
+  
+  .logo-text {
+    display: none; 
+  }
+  
+  .logo-image {
+    display: block; 
+  }
+}
+/*sider */
+.container-sider {
+  position: fixed !important; /* Cố định Sider bên trái */
+  top: 0 !important;
+  left: 0 !important;
+  text-align: center;
+  color: #000; /* Đổi màu chữ từ trắng thành đen để có thể thấy nội dung trên nền trắng */
+  height: 100vh;
+  padding: 0 20px;
+  background-color: white !important;
+  display: flex; /* Sử dụng Flexbox để căn chỉnh các phần tử trong Sider */
+  flex-direction: column; /* Căn chỉnh các phần tử theo chiều dọc */
+  box-shadow: 1px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* Đảm bảo Sider luôn hiển thị phía trên các phần tử khác */
+}
+.ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+}
+.custom-menu {
+  flex: 1; /* Chiếm không gian còn lại giữa logo và button */
+  overflow: auto; /* Cho phép cuộn nếu cần */
+  border-inline-end: none !important;
+}
+.custom-menu .ant-menu-item {
+  height: 60px; /* Chiều cao cố định cho các item */
+  line-height: 60px; /* Căn giữa nội dung theo chiều dọc */
+  padding: 0 16px; /* Padding trái và phải cho các item */
+  display: flex; /* Sử dụng flexbox để căn chỉnh nội dung */
+  align-items: center; /* Căn giữa nội dung theo chiều dọc */
+  gap: 10px; /* Khoảng cách giữa icon và text */
+  overflow: hidden; /* Đảm bảo không bị tràn khi thu nhỏ */
+  transition: background-color 0.3s ease; /* Hiệu ứng chuyển đổi mượt mà */
+}
+.custom-menu .ant-menu-item.ant-menu-item-selected {
+  background-color: #d9d9d9; /* Màu nền khi item được chọn */
+  color: #000; /* Màu chữ khi item được chọn */
+}
+.custom-menu .ant-menu-item .ant-menu-title-content {
+  display: flex;
+  justify-content: flex-start;
+}
+.custom-menu .ant-menu-item .ant-menu-item-content .ant-menu-title-content {
+  white-space: nowrap; /* Ngăn không cho tiêu đề xuống dòng */
+  overflow: hidden; /* Ẩn phần tiêu đề vượt quá chiều rộng */
+  text-overflow: ellipsis; /* Thêm dấu ba chấm khi tiêu đề bị cắt */
+}
+@media (max-width: 768px) {
+  .custom-menu .ant-menu-item {
+    height: auto; /* Đặt chiều cao tự động trên màn hình nhỏ hơn */
+    line-height: 1.5; /* Căn giữa nội dung theo chiều dọc với line-height tự động */
+    padding: 10px 16px; /* Tăng padding để cải thiện không gian trên màn hình nhỏ hơn */
+    font-size: 14px; /* Điều chỉnh kích thước font cho màn hình nhỏ */
+    gap: 8px; /* Giữ khoảng cách giữa icon và text khi màn hình nhỏ hơn */
+  }
+
+  .custom-menu .ant-menu-item .ant-menu-title-content {
+    display: none; /* Ẩn tiêu đề trên màn hình nhỏ */
+  }
+
+  .custom-menu .ant-menu-item:hover .ant-menu-title-content {
+    display: block; /* Hiển thị tiêu đề khi hover trên màn hình nhỏ */
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-menu .ant-menu-item {
+    padding: 8px 12px; /* Điều chỉnh padding cho màn hình rất nhỏ */
+    font-size: 12px; /* Điều chỉnh kích thước font cho màn hình rất nhỏ */
+    gap: 6px; /* Giảm khoảng cách giữa icon và text cho màn hình rất nhỏ */
+  }
+
+  .custom-menu .ant-menu-item .ant-menu-title-content {
+    display: none; /* Ẩn tiêu đề trên màn hình rất nhỏ */
+  }
+
+  .custom-menu .ant-menu-item:hover .ant-menu-title-content {
+    display: block; /* Hiển thị tiêu đề khi hover trên màn hình rất nhỏ */
+  }
+}
+/*projectcard*/
+.ant-card-actions {
+  border: none !important;
+  display: flex !important; /* Thêm display flex để kích hoạt space-between */
+}
+.ant-card-actions li {
+  display: flex;
+  justify-content: center !important;;
+  align-items: center;
+}
+.ant-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Tạo chuyển đổi mượt mà */
+}
+
+.ant-card:hover {
+  transform: translateY(-5px); /* Di chuyển thẻ lên trên khi hover */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Thêm bóng mờ khi hover */
+  cursor:pointer; 
+}
+.ant-card-actions li:hover {
+  background-color: white !important;
+}
+
+/*----------------------------------------------------------------*/
+/*page*/
+/*accountpage*/
+.container_admin_account{
+  padding: 20px 40px;
+}
+.container_admin_account_title{
+  margin-bottom: 30px;
+
+}
+.container_admin_account_header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.container_admin_account_action{
+  display: flex;
+  height: 100%;
+  gap: 10px;
+}
+.container_admin_account_action button{
+  width: 100px;
+  margin: 0;
+}
+.table-pagination {
+  justify-content: center !important;
+}
+/*taskpage*/
+.task-page {
+  min-height: 100vh;
+  margin: 30px;
+}
+
+.task-title {
+  font-size: 18px;
+  padding-bottom: 20px;
+}
+
+.filter-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-right: 20px;
+}
+
+.filter-section {
+  margin-bottom: 16px;
+}
+
+.filter-title {
+  font-weight: bold;
+  margin-top: 0;
+}
+
+.radio-item {
+  margin-bottom: 8px;
+}
+
+.apply-button {
+  margin-top: 16px;
+  width: 100%;
+  background-color: #038edc;
+}
+
+.container_action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-task-btn {
+  color: #038edc;
+  background-color: rgba(3, 142, 220, 0.1);
+}
+
+.filter-btn {
+  color: #038edc;
+  background-color: rgba(3, 142, 220, 0.1);
+  padding: 0.5rem;
+}
+
+.task-card-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  width: 100%;
+  overflow: hidden;
+  flex-direction: column;
+  gap: 20px;
+}
+/*usermanagerprojectpage*/
+.container_action{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.container_action_right{
+  display: flex;
+  gap: 20px;
+}
+.container_all_projects{
+  margin-top: 1rem;
+  margin-right: -15px;
+}
+.container_all_projects .ant-col{
+  padding-right: 0.75rem;
+  padding-bottom: 0.75rem;
+}
