@@ -32,7 +32,6 @@ const AdminPage = () => {
         return <></>;
     }
   };
-  console.log("selectedKey", selectedKey);
   return (
     <div style={{ width: "100%" }}>
       <SiderComponent
