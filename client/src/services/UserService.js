@@ -18,3 +18,30 @@ export const createUser = async (data) => {
   );
   return res.data;
 };
+export const deleteUser = async (id) => {
+  const res = await axiosJWT.delete(
+    `${process.env.REACT_APP_API_URL}/api/user/delete/${id}`
+  );
+  return res.data;
+};
+export const deleteManyUser = async (ids) => {
+  const res = await axiosJWT.delete(
+    `${
+      process.env.REACT_APP_API_URL
+    }/api/user/delete-many?selectedManyKeys=${ids.join(",")}`
+  );
+  return res.data;
+};
+export const getDetailsUser = async (id) => {
+  const res = await axiosJWT.get(
+    `${process.env.REACT_APP_API_URL}/api/user/detail/${id}`
+  );
+  return res.data;
+};
+export const updateUser = async (id, data) => {
+  const res = await axios.put(
+    `${process.env.REACT_APP_API_URL}/api/user/update/${id}`,
+    data
+  );
+  return res.data;
+};

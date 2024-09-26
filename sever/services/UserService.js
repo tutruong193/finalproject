@@ -52,7 +52,93 @@ const getAllUser = async () => {
     }
   });
 };
+const deleteUser = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkUser = await User.findById(id);
+      if (checkUser == null) {
+        resolve({
+          status: "ERR",
+          message: "Cannot find user",
+        });
+      } else {
+        await User.findByIdAndDelete(id);
+        resolve({
+          status: "OK",
+          message: "SUCCESS",
+        });
+      }
+    } catch (error) {
+      throw error;
+    }
+  });
+};
+const deleteManyUser = async (ids) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!ids || ids.length === 0) {
+        resolve({
+          status: "ERR",
+          message: "No users selected for deletion",
+        });
+      } else {
+        await User.deleteMany({
+          _id: { $in: ids }, // Điều kiện xóa: _id trong danh sách ids
+        });
+        resolve({
+          status: "OK",
+          message: "Users deleted successfully",
+        });
+      }
+    } catch (error) {
+      reject({
+        status: "ERR",
+        message: error.message || "Error occurred while deleting users",
+      });
+    }
+  });
+};
+const updateUser = async (id, data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const updateUser = await User.findByIdAndUpdate(id, data);
+      resolve({
+        status: "OK",
+        message: "SUCCESS",
+        data: updateUser,
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+};
+const detailUser = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const user = await User.findOne({
+        _id: id,
+      });
+      if (user === null) {
+        resolve({
+          status: "ERR",
+          message: "The user is not defined",
+        });
+      }
+      resolve({
+        status: "OK",
+        message: "SUCESS",
+        data: user,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 module.exports = {
   createUser,
   getAllUser,
+  deleteUser,
+  deleteManyUser,
+  updateUser,
+  detailUser,
 };
