@@ -1,5 +1,18 @@
 import axios from "axios";
 const axiosJWT = axios.create();
+export const loginUser = async (data) => {
+  const res = await axios.post(
+    `${process.env.REACT_APP_API_URL}/api/user/login`,
+    data
+  );
+  return res.data;
+};
+export const logoutUser = async () => {
+  const res = await axios.post(
+    `${process.env.REACT_APP_API_URL}/api/user/logout`
+  );
+  return res.data;
+};
 export const getAllUser = async () => {
   const res = await axios.get(
     `${process.env.REACT_APP_API_URL}/api/user/getall`

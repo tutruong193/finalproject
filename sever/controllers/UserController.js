@@ -98,6 +98,45 @@ const detailUser = async (req, res) => {
     });
   }
 };
+const loginUser = async (req, res) => {
+  try {
+      const { email, password } = req.body
+      const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
+      const isCheckEmail = reg.test(email)
+      if (!email || !password) {
+          return res.status(200).json({
+              status: 'ERR',
+              message: 'The input is required'
+          })
+      } else if (!isCheckEmail) {
+          return res.status(200).json({
+              status: 'ERR',
+              message: 'The input is email'
+          })
+      }
+      const response = await UserService.loginUser(req.body)
+      return res.status(200).json(response)
+  } catch (e) {
+      return res.status(404).json({
+          message: e
+      })
+  }
+}
+const logoutUser = async (req, res) => {
+  try {
+      res.clearCookie('refresh_token')
+      return res.status(200).json({
+          status: 'OK',
+          message: 'Logout successfully'
+      })
+  } catch (e) {
+      return res.status(404).json({
+          message: e
+      })
+  }
+}
+
+
 module.exports = {
   createUser,
   getAllUser,
@@ -105,4 +144,6 @@ module.exports = {
   deleteManyUser,
   detailUser,
   updateUser,
+  loginUser,
+  logoutUser
 };

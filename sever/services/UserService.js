@@ -1,5 +1,6 @@
 const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
+const { generalAccessToken } = require("./JWTService");
 const createUser = (data) => {
   return new Promise(async (resolve, reject) => {
     const { name, email, password, role } = data;
@@ -134,6 +135,41 @@ const detailUser = async (id) => {
     }
   });
 };
+const loginUser = (data) => {
+  return new Promise(async (resolve, reject) => {
+    const { email, password } = data;
+    try {
+      const checkUser = await User.findOne({ email: email });
+      if (checkUser == null) {
+        resolve({
+          status: "ERR",
+          message: "The user is not defined",
+        });
+      }
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        checkUser.password
+      );
+      if (!isPasswordValid) {
+        return resolve({
+          status: "ERR",
+          message: "The password or username is not correct",
+        });
+      }
+      const access_token = await generalAccessToken({
+        id: checkUser._id,
+        role: checkUser.role,
+      });
+      resolve({
+        status: "OK",
+        message: "SUCCESS",
+        access_token: access_token,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 module.exports = {
   createUser,
   getAllUser,
@@ -141,4 +177,5 @@ module.exports = {
   deleteManyUser,
   updateUser,
   detailUser,
+  loginUser,
 };

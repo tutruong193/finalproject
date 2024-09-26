@@ -27,7 +27,7 @@ const ProjectCardComponent = ({
   return (
     <div>
       <Card
-        title={<div>{add_dated}</div>}
+        title={<div>Started at:   {add_dated}</div>}
         extra={<EllipsisOutlined />}
         actions={[
           <Avatar.Group
