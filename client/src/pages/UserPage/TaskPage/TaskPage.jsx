@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SearchOutlined,
   FilterOutlined,
@@ -6,7 +6,10 @@ import {
 } from "@ant-design/icons";
 import { Input, Button, Row, Col, Radio } from "antd";
 import TaskCardComponent from "../../../components/TaskCardComponent/TaskCardComponent";
+import { useLocation } from "react-router-dom";
+import * as TaskService from "../../../services/TaskService";
 const TaskPage = () => {
+  //setup
   const [statusValue, setStatusValue] = useState("all"); // giá trị trạng thái đã chọn
   const [orderValue, setOrderValue] = useState("ascending"); // giá trị thứ tự đã chọn
 
@@ -52,12 +55,30 @@ const TaskPage = () => {
       value: "pending",
     },
   ];
-
+  //fetch task data
+  const [stateTask, setStateTask] = useState([]);
+  const location = useLocation();
+  const projectId = new URLSearchParams(location.search).get("projectId");
+  useEffect(() => {
+    const fetchTaskData = async () => {
+      try {
+        const res = await TaskService.getAllTask(projectId);
+        if (res.status === "ERR") {
+        } else {
+          setStateTask(res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchTaskData();
+  }, [projectId]);
+  console.log("stateTask", stateTask);
   return (
     <div className="task-page">
       <h2 className="task-title">Tasks List</h2>
       <Row>
-        <Col span={6}>
+        <Col span={5}>
           <div className="filter-container">
             <div className="filter-section">
               <h4 className="filter-title">Status</h4>
@@ -88,7 +109,7 @@ const TaskPage = () => {
             </Button>
           </div>
         </Col>
-        <Col span={18}>
+        <Col span={19}>
           <div>
             <div className="container_action">
               <Button
@@ -109,31 +130,14 @@ const TaskPage = () => {
               </div>
             </div>
             <div className="task-card-container">
-              <TaskCardComponent
-                task_name="create something"
-                task_date="14/03/2024"
-                status="completed"
-              />
-              <TaskCardComponent
-                task_name="create something"
-                task_date="14/03/2024"
-                status="pending"
-              />
-              <TaskCardComponent
-                task_name="create something"
-                task_date="14/03/2024"
-                status="progress"
-              />
-              <TaskCardComponent
-                task_name="create something"
-                task_date="14/03/2024"
-                status="completed"
-              />
-              <TaskCardComponent
-                task_name="create something"
-                task_date="14/03/2024"
-                status="completed"
-              />
+              {stateTask?.map((task) => (
+                <TaskCardComponent
+                  key={task._id}
+                  task_name={task?.taskName}
+                  task_date={task?.dueDate}
+                  status={task?.status}
+                />
+              ))}
             </div>
           </div>
         </Col>

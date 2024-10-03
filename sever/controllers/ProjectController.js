@@ -49,6 +49,12 @@ const createProject = async (req, res) => {
         message: "Start date cannot be later than end date",
       });
     }
+    if (start.getTime() === end.getTime()) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "Start date and end date cannot be the same",
+      });
+    }
     if (start < now || end < now) {
       return res.status(200).json({
         status: "ERR",
@@ -65,16 +71,52 @@ const createProject = async (req, res) => {
   }
 };
 const getAllProject = async (req, res) => {
-    try {
-      const response = await ProjectService.getAllProject();
-      return res.status(200).json(response);
-    } catch (e) {
-      return res.status(404).json({
-        message: e,
+  try {
+    const response = await ProjectService.getAllProject();
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+const deleteProject = async (req, res) => {
+  try {
+    const ProjectId = req.params.id;
+    if (!ProjectId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "ProjectID is required",
       });
     }
-  };
+    const response = await ProjectService.deleteProject(ProjectId);
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+const getDetailProject = async (req, res) => {
+  try {
+    const ProjectId = req.params.id;
+    if (!ProjectId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "ProjectID is required",
+      });
+    }
+    const response = await ProjectService.getDetailProject(ProjectId);
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 module.exports = {
   createProject,
-  getAllProject
+  getAllProject,
+  deleteProject,
+  getDetailProject
 };

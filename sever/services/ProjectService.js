@@ -64,7 +64,7 @@ const createProject = (data) => {
 const getAllProject = async () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const data = await Project.find()
+      const data = await Project.find();
       resolve({
         status: "OK",
         message: "SUCCESS",
@@ -75,7 +75,36 @@ const getAllProject = async () => {
     }
   });
 };
+const deleteProject = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Project.findByIdAndDelete(id);
+      resolve({
+        status: "OK",
+        message: "SUCCESS",
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+};
+const getDetailProject = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const detailProject = await Project.findOne({ _id: id });
+      resolve({
+        status: "OK",
+        message: "SUCCESS",
+        data: detailProject,
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+};
 module.exports = {
   createProject,
-  getAllProject
+  getAllProject,
+  deleteProject,
+  getDetailProject,
 };

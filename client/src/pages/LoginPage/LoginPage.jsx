@@ -37,9 +37,9 @@ const LoginPage = () => {
       const user = jwtTranslate(res?.access_token);
       console.log(user?.role);
       if (user?.role.includes("admin")) {
-        navigate("/system/admin");
+        navigate("/system/admin/accounts");
       } else if (!user?.role.includes("admin")) {
-        navigate("/system/user");
+        navigate("/system/user/manager");
       } else {
         navigate("/login");
       }
