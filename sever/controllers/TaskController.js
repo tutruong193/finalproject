@@ -2,10 +2,10 @@ const TaskService = require("../services/TaskService");
 const createTask = async (req, res) => {
   try {
     const {
-      taskName,
+      name,
       projectId,
       dueDate,
-      assigneeId,
+      assignees, // Thay đổi thành assignees
       priority,
       status,
       description,
@@ -13,16 +13,16 @@ const createTask = async (req, res) => {
 
     // Kiểm tra các giá trị bắt buộc
     if (
-      !taskName ||
+      !name ||
       !projectId ||
       !dueDate ||
-      !assigneeId ||
-      assigneeId.length === 0
+      !assignees ||
+      assignees.length === 0
     ) {
       return res.status(400).json({
         status: "ERR",
         message:
-          "Required fields are missing: taskName, projectId, dueDate, assigneeId",
+          "Required fields are missing: name, projectId, dueDate, assignees",
       });
     }
 
@@ -37,6 +37,7 @@ const createTask = async (req, res) => {
     });
   }
 };
+
 const getAllTask = async (req, res) => {
   try {
     const { projectId } = req.query;

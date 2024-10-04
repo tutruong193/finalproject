@@ -4,10 +4,10 @@ const User = require("../models/UserModel");
 const createTask = (data) => {
   return new Promise(async (resolve, reject) => {
     const {
-      taskName,
+      name,
       projectId,
       dueDate,
-      assigneeId,
+      assignees, // Sử dụng mảng assignees
       priority,
       status,
       description,
@@ -22,25 +22,34 @@ const createTask = (data) => {
           message: "Project not found",
         });
       }
+      const checkTask = await Task.findOne({ name: name });
+      if (checkTask !== null) {
+        return resolve({
+          status: "ERR",
+          message: "Task has already had",
+        });
+      }
 
-      // Kiểm tra danh sách assigneeId có hợp lệ không
-      const validAssignees = await User.find({ _id: { $in: assigneeId } });
-      if (validAssignees.length !== assigneeId.length) {
+      // Lấy danh sách userId từ mảng assignees
+      const assigneeIds = assignees.map((assignee) => assignee.userId);
+
+      // Kiểm tra danh sách assignees có hợp lệ không
+      const validAssignees = await User.find({ _id: { $in: assigneeIds } });
+      if (validAssignees.length !== assigneeIds.length) {
         return resolve({
           status: "ERR",
           message: "One or more assignees are invalid",
         });
       }
-
       // Tạo task mới
       const createdTask = await Task.create({
-        taskName,
+        name,
         projectId,
-        assigneeId,
+        assignees,
         dueDate,
-        priority: priority || "medium", // nếu không có giá trị thì dùng mặc định là "medium"
-        status: status || "pending", // nếu không có giá trị thì dùng mặc định là "pending"
-        description: description || "",
+        priority,
+        status,
+        description,
       });
 
       resolve({
@@ -53,6 +62,7 @@ const createTask = (data) => {
     }
   });
 };
+
 const getAllTask = async (id) => {
   return new Promise(async (resolve, reject) => {
     try {

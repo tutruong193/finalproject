@@ -5,7 +5,7 @@ const createProject = async (req, res) => {
       name,
       description,
       managerID,
-      membersID,
+      members,
       startDate,
       endDate,
       status,
@@ -118,5 +118,5 @@ module.exports = {
   createProject,
   getAllProject,
   deleteProject,
-  getDetailProject
+  getDetailProject,
 };

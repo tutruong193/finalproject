@@ -24,7 +24,6 @@ const LoginPage = () => {
   };
 
   const handleLogin = async () => {
-    console.log(email, password);
     const res = await UserService.loginUser({ email, password });
     if (res?.status === "OK") {
       Message.success("Login successful");
@@ -35,7 +34,6 @@ const LoginPage = () => {
         sameSite: "strict", // Ngăn chặn cookie từ miền khác
       });
       const user = jwtTranslate(res?.access_token);
-      console.log(user?.role);
       if (user?.role.includes("admin")) {
         navigate("/system/admin/accounts");
       } else if (!user?.role.includes("admin")) {

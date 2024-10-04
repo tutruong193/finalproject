@@ -7,6 +7,12 @@ export const getAllTask = async (projectId) => {
       params: { projectId }, // Gửi projectId dưới dạng query parameter
     }
   );
-  console.log(projectId);
+  return res.data;
+};
+export const addTask = async (data) => {
+  const res = await axios.post(
+    `${process.env.REACT_APP_API_URL}/api/task/create`,
+    data
+  );
   return res.data;
 };

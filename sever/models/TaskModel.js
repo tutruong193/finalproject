@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const taskSchema = new mongoose.Schema(
   {
-    taskName: {
+    name: {
       type: String,
       required: true,
     },
@@ -14,17 +14,26 @@ const taskSchema = new mongoose.Schema(
       ref: "Project",
       required: true,
     },
-    assigneeId: [
+    assignees: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        name: { type: String, required: true },
+        status: {
+          type: String,
+          enum: ["progress", "completed"],
+          required: true,
+          default: "progress",
+        },
       },
     ],
     status: {
       type: String,
-      enum: ["pending", "progress", "completed"],
-      default: "pending",
+      enum: ["progress", "completed"],
+      default: "progress",
     },
     priority: {
       type: String,

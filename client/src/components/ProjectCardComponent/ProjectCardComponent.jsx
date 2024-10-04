@@ -59,7 +59,6 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       Message.error("Failed to delete project");
     }
   };
-  console.log(projectId);
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editedProjectData, setEditedProjectData] = useState({
@@ -127,7 +126,6 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       </Popconfirm>
     </div>
   );
-  console.log(editedProjectData);
   return (
     <div>
       <Card

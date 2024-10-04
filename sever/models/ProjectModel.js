@@ -5,7 +5,17 @@ const projectSchema = new mongoose.Schema(
     name: { type: String, required: true },
     description: { type: String },
     managerID: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    membersID: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    members: [
+      // Đổi tên từ membersID thành members
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        name: { type: String, required: true }, // Chỉ cần type: String
+      },
+    ],
     startDate: { type: Date },
     endDate: { type: Date },
     status: {

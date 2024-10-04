@@ -90,7 +90,10 @@ const UserManagerProjectPage = () => {
       ]);
       setStateAddProject((prevState) => ({
         ...prevState,
-        memberIDs: [...prevState.memberIDs, memberId], // Thêm thành viên mới vào mảng memberIDs
+        members: [
+          ...prevState.members,
+          { userId: memberId, name: memberLabel },
+        ], // Sửa lại thành members
       }));
       setInputValue("");
       setInputVisible(false); // Ẩn input sau khi chọn thành viên
@@ -116,7 +119,7 @@ const UserManagerProjectPage = () => {
     startDate: "",
     endDate: "",
     managerID: infoUser?.id,
-    memberIDs: [],
+    members: [],
   });
   const handleOnChangeAddProject = (e) => {
     setStateAddProject({

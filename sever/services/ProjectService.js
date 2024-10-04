@@ -7,7 +7,7 @@ const createProject = (data) => {
       name,
       description,
       managerID,
-      membersID,
+      members,
       startDate,
       endDate,
       status,
@@ -23,7 +23,7 @@ const createProject = (data) => {
         });
       }
 
-      // Kiểm tra xem managerID có tồn tại không
+      // Kiểm tra managerID có tồn tại không
       const checkUser = await User.findOne({ _id: managerID });
       if (!checkUser) {
         return resolve({
@@ -32,12 +32,28 @@ const createProject = (data) => {
         });
       }
 
+      // Kiểm tra membersID hợp lệ
+      const validMembers = await Promise.all(
+        members.map(async (member) => {
+          const user = await User.findById(member.userId);
+          return user ? { userId: member.userId, name: user.name } : null;
+        })
+      );
+
+      // Nếu có thành viên không hợp lệ
+      if (validMembers.includes(null)) {
+        return resolve({
+          status: "ERR",
+          message: "One or more members are invalid",
+        });
+      }
+
       // Tạo mới dự án nếu mọi thứ đều hợp lệ
       const createdProject = await Project.create({
         name,
         description,
         managerID,
-        membersID,
+        members: validMembers,
         startDate,
         endDate,
         status,
