@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "dayjs": "^1.11.13",
-    "moment": "^2.30.1"
-  }
-}

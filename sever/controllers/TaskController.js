@@ -55,8 +55,25 @@ const getAllTask = async (req, res) => {
     });
   }
 };
-
+const getDetailTask = async (req, res) => {
+  try {
+    const taskId = req.params.id;
+    if (!taskId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "TaskID is required",
+      });
+    }
+    const response = await TaskService.getDetailTask(taskId);
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 module.exports = {
   createTask,
   getAllTask,
+  getDetailTask,
 };

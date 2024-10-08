@@ -15,15 +15,35 @@ import {
   Input,
   DatePicker,
   Select,
+  
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import * as ProjectService from "../../services/ProjectService";
 import * as Message from "../../components/MessageComponent/MessageComponent";
 import dayjs from "dayjs";
+import avatar from "../../assets/avatar.jpg";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(customParseFormat);
 const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   const navigate = useNavigate();
+  const [stateProject, setStateProject] = useState([]);
+  useEffect(() => {
+    const fetchProjectData = async () => {
+      try {
+        const projectRes = await ProjectService.getDetailProjectProject(
+          projectId
+        );
+        if (projectRes.status === "OK") {
+          setStateProject(projectRes.data);
+        } else {
+          console.error("Error fetching project details");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchProjectData();
+  }, [projectId]);
   const tags = [
     {
       status: "pending",
@@ -95,43 +115,49 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   const handleCancelEdit = () => {
     setIsEditModalVisible(false);
   };
-  const content = (
-    <div style={{ display: "flex", flexDirection: "column" }}>
-      <Button
-        type="text"
-        icon={<EditOutlined />}
-        onClick={handleEdit} // Gọi hàm xử lý khi click
-        style={{ textAlign: "left", padding: 0, justifyContent: "flex-start" }}
-      >
-        Edit
-      </Button>
-      <Popconfirm
-        title="Delete the task"
-        description="Are you sure to delete this task?"
-        onConfirm={handleDelete}
-        okText="Yes"
-        cancelText="No"
-      >
-        <Button
-          type="text"
-          icon={<DeleteOutlined />}
-          style={{
-            textAlign: "left",
-            padding: 0,
-            justifyContent: "flex-start",
-          }}
-        >
-          Delete
-        </Button>
-      </Popconfirm>
-    </div>
-  );
   return (
     <div>
       <Card
         title={<div onClick={handleCardClick}>{editedProjectData?.name}</div>}
         extra={
-          <Popover content={content} trigger="click">
+          <Popover
+            trigger="click"
+            content={
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <Button
+                  type="text"
+                  icon={<EditOutlined />}
+                  onClick={handleEdit} // Gọi hàm xử lý khi click
+                  style={{
+                    textAlign: "left",
+                    padding: 0,
+                    justifyContent: "flex-start",
+                  }}
+                >
+                  Edit
+                </Button>
+                <Popconfirm
+                  title="Delete the task"
+                  description="Are you sure to delete this task?"
+                  onConfirm={handleDelete}
+                  okText="Yes"
+                  cancelText="No"
+                >
+                  <Button
+                    type="text"
+                    icon={<DeleteOutlined />}
+                    style={{
+                      textAlign: "left",
+                      padding: 0,
+                      justifyContent: "flex-start",
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </Popconfirm>
+              </div>
+            }
+          >
             <EllipsisOutlined />
           </Popover>
         }
@@ -145,10 +171,13 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
               },
             }}
           >
-            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
-            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
-            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
-            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
+            {stateProject?.members?.map((member) => (
+              <Avatar
+                key={member.userId}
+                src={member.avatar || avatar}
+                alt={member.name}
+              />
+            ))}
           </Avatar.Group>,
           <div
             style={{

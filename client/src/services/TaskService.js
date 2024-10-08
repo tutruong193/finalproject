@@ -16,3 +16,9 @@ export const addTask = async (data) => {
   );
   return res.data;
 };
+export const getDetailTask = async (taskId) => {
+  const res = await axios.get(
+    `${process.env.REACT_APP_API_URL}/api/task/detail/${taskId}`
+  );
+  return res.data;
+};

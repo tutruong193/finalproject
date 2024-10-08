@@ -77,7 +77,22 @@ const getAllTask = async (id) => {
     }
   });
 };
+const getDetailTask = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const detailTask = await Task.findOne({ _id: id });
+      resolve({
+        status: "OK",
+        message: "SUCCESS",
+        data: detailTask,
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+};
 module.exports = {
   createTask,
   getAllTask,
+  getDetailTask,
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SearchOutlined,
   FilterOutlined,
@@ -231,12 +231,7 @@ const TaskPage = () => {
               {
                 // Kiểm tra nếu taskQuery.data là mảng
                 tasks?.data.map((task) => (
-                  <TaskCardComponent
-                    key={task._id}
-                    task_name={task.name}
-                    task_date={task.dueDate}
-                    status={task.status}
-                  />
+                  <TaskCardComponent key={task._id} task_id={task._id} />
                 ))
               }
             </div>
