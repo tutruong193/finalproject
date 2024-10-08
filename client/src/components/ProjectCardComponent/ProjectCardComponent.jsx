@@ -15,8 +15,8 @@ import {
   Input,
   DatePicker,
   Select,
-  
 } from "antd";
+import * as UserService from "../../services/UserService";
 import { useNavigate } from "react-router-dom";
 import * as ProjectService from "../../services/ProjectService";
 import * as Message from "../../components/MessageComponent/MessageComponent";
@@ -26,23 +26,52 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(customParseFormat);
 const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   const navigate = useNavigate();
-  const [stateProject, setStateProject] = useState([]);
+  const [stateProject, setStateProject] = useState({
+    name: "",
+    description: "",
+    startDate: null,
+    endDate: null,
+    status: "",
+    members: [],
+  });
+  const [userData, setUserData] = useState([]);
+  const [selectedMembers, setSelectedMembers] = useState();
   useEffect(() => {
-    const fetchProjectData = async () => {
+    const fetchProjectAndUsers = async () => {
       try {
-        const projectRes = await ProjectService.getDetailProjectProject(
-          projectId
-        );
+        // Gọi đồng thời cả hai hàm API
+        const [projectRes, userRes] = await Promise.all([
+          ProjectService.getDetailProjectProject(projectId),
+          UserService.getAllUser(),
+        ]);
+        // Xử lý kết quả của project
         if (projectRes.status === "OK") {
-          setStateProject(projectRes.data);
+          setStateProject({
+            ...projectRes.data,
+            members: projectRes.data?.members?.map((user) => ({
+              label: user.name,
+              value: user.userId,
+            })),
+          });
+          setSelectedMembers(projectRes.data.members);
         } else {
           console.error("Error fetching project details");
+        }
+        // Xử lý kết quả của user
+        if (userRes?.data) {
+          const formattedUsers = userRes.data
+            .filter((user) => user.role.includes("member"))
+            .map((user) => ({
+              label: user.name,
+              value: user._id, // Value hiển thị trong AutoComplete
+            }));
+          setUserData(formattedUsers || []);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-    fetchProjectData();
+    fetchProjectAndUsers();
   }, [projectId]);
   const tags = [
     {
@@ -79,33 +108,43 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       Message.error("Failed to delete project");
     }
   };
-
+  //editProject
+  const [formEdit] = Form.useForm();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editedProjectData, setEditedProjectData] = useState({
-    name: "",
-    description: "",
-    startDate: null,
-    endDate: null,
-    status: "",
-  });
-  useEffect(() => {
-    const fetchDetailProject = async () => {
-      const res = await ProjectService.getDetailProjectProject(projectId);
-      setEditedProjectData(res.data);
-    };
-    fetchDetailProject();
-  }, [projectId]);
 
+  const handleChangeSelectMember = (value) => {
+    const selectedMembers = value.map((userId) => {
+      const selectedUser = userData.find((user) => user.value === userId);
+      return { userId, name: selectedUser.label }; // Lưu cả userId và name
+    });
+    setSelectedMembers(selectedMembers);
+  };
   const handleEdit = () => {
     setIsEditModalVisible(true);
+    formEdit.setFieldsValue({
+      name: stateProject.name,
+      description: stateProject.description,
+      startDate: dayjs(stateProject.startDate, "YYYY-MM-DD"), // Cần chuyển về định dạng dayjs
+      endDate: dayjs(stateProject.endDate, "YYYY-MM-DD"),
+      status: stateProject.status,
+    });
   };
-
   const handleSaveEdit = async () => {
     try {
-      await ProjectService.updateProject(projectId, editedProjectData); // Gọi hàm cập nhật
-      Message.success("Project updated successfully");
-      projectQuerry.refetch(); // Gọi lại dữ liệu dự án
-      setIsEditModalVisible(false);
+      const updateProject = {
+        ...formEdit.getFieldsValue(), // Lấy các giá trị khác từ form
+        members: selectedMembers, // Ghi đè members bằng selectedMembers từ state
+      };
+      const res = await ProjectService.updateProject(projectId, updateProject); // Gọi hàm cập nhật
+      if (res.status === "OK") {
+        formEdit.resetFields();
+        setIsEditModalVisible(false);
+        Message.success(res.message);
+        projectQuerry.refetch();
+        setTimeout(window.location.reload(), 3000);
+      } else {
+        Message.error(res.message);
+      }
     } catch (error) {
       console.error("Failed to update project:", error);
       Message.error("Failed to update project");
@@ -118,7 +157,7 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   return (
     <div>
       <Card
-        title={<div onClick={handleCardClick}>{editedProjectData?.name}</div>}
+        title={<div onClick={handleCardClick}>{stateProject?.name}</div>}
         extra={
           <Popover
             trigger="click"
@@ -184,22 +223,22 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
               width: "fit-content",
               padding: "0px 20px",
               backgroundColor:
-                tags.find((tag) => tag.status === editedProjectData?.status)
+                tags.find((tag) => tag.status === stateProject?.status)
                   ?.backgroundColor || "gray",
               color:
-                tags.find((tag) => tag.status === editedProjectData?.status)
+                tags.find((tag) => tag.status === stateProject?.status)
                   ?.color || "white",
               marginRight: "5px",
             }}
           >
-            {editedProjectData?.status || "none"}
+            {stateProject?.status || "none"}
           </div>,
         ]}
       >
         <div>
-          <div>{editedProjectData?.description}</div>
-          <div>{editedProjectData?.startDate}</div>
-          <div>{editedProjectData?.endDate}</div>
+          <div>{stateProject?.description}</div>
+          <div>{stateProject?.startDate}</div>
+          <div>{stateProject?.endDate}</div>
         </div>
       </Card>
       <Modal
@@ -208,58 +247,32 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
         onOk={handleSaveEdit}
         onCancel={handleCancelEdit}
       >
-        <Form layout="vertical">
-          <Form.Item label="Name">
-            <Input
-              value={editedProjectData.name}
-              onChange={(e) =>
-                setEditedProjectData({
-                  ...editedProjectData,
-                  name: e.target.value,
-                })
-              }
-            />
+        <Form layout="vertical" form={formEdit} autoComplete="off">
+          <Form.Item label="Name" name="name">
+            <Input name="name" />
           </Form.Item>
-          <Form.Item label="Description">
-            <Input.TextArea
-              value={editedProjectData.description}
-              onChange={(e) =>
-                setEditedProjectData({
-                  ...editedProjectData,
-                  description: e.target.value,
-                })
-              }
-            />
+          <Form.Item label="Description" name="description">
+            <Input.TextArea name="description" />
           </Form.Item>
-          <Form.Item label="Start Date">
-            <DatePicker
-              value={dayjs(editedProjectData.startDate, "YYYY-MM-DD")}
-              onChange={(date) =>
-                setEditedProjectData({
-                  ...editedProjectData,
-                  startDate: date ? date.format("YYYY-MM-DD") : null, // Cập nhật trạng thái
-                })
-              }
-            />
+          <Form.Item label="Start Date" name="startDate">
+            <DatePicker name="startDate" />
           </Form.Item>
-          <Form.Item label="End Date">
-            <DatePicker
-              value={dayjs(editedProjectData.endDate, "YYYY-MM-DD")}
-              onChange={(date) =>
-                setEditedProjectData({
-                  ...editedProjectData,
-                  endDate: date ? date.format("YYYY-MM-DD") : null, // Cập nhật trạng thái
-                })
-              }
-            />
+          <Form.Item label="End Date" name="endDate">
+            <DatePicker name="endDate" />
           </Form.Item>
-          <Form.Item label="Status">
+          <Form.Item label="Members">
             <Select
-              value={editedProjectData.status}
-              onChange={(value) =>
-                setEditedProjectData({ ...editedProjectData, status: value })
-              }
-            >
+              defaultValue={stateProject.members}
+              mode="multiple"
+              onChange={handleChangeSelectMember}
+              options={stateProject.members}
+              placeholder="Select members"
+              style={{ width: "100%" }}
+            />
+          </Form.Item>
+
+          <Form.Item label="Status" name="status">
+            <Select name="status">
               <Select.Option value="pending">Pending</Select.Option>
               <Select.Option value="progress">In Progress</Select.Option>
               <Select.Option value="completed">Completed</Select.Option>

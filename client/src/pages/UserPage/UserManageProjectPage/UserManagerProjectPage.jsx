@@ -1,21 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SearchOutlined,
   FilterOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import {
-  Input,
-  Button,
-  Row,
-  Col,
-  Modal,
-  Form,
-  DatePicker,
-  Tag,
-  AutoComplete,
-  Card,
-} from "antd";
+import { Input, Button, Row, Col, Modal, Form, DatePicker, Select } from "antd";
 import moment from "moment";
 import ProjectCardComponent from "../../../components/ProjectCardComponent/ProjectCardComponent";
 import { useNavigate } from "react-router-dom";
@@ -25,12 +14,10 @@ import * as ProjectService from "../../../services/ProjectService";
 import { jwtTranslate } from "../../../ultilis";
 import * as UserService from "../../../services/UserService";
 import * as Message from "../../../components/MessageComponent/MessageComponent";
-import TaskCardComponent from "../../../components/TaskCardComponent/TaskCardComponent";
 const UserManagerProjectPage = () => {
   const [cookiesAccessToken, setCookieAccessToken, removeCookie] =
     useCookies("");
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
-  const navigate = useNavigate();
   // Fetch projects
   const fetchProjectAll = async () => {
     const res = await ProjectService.getAllProject();
@@ -51,10 +38,6 @@ const UserManagerProjectPage = () => {
   // Modal add project
   const [formAddProject] = Form.useForm();
   const [isModalAddProject, setIsModalAddProject] = useState(false);
-  const [selectedMembers, setSelectedMembers] = useState([]);
-  const [inputVisible, setInputVisible] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const inputRef = useRef(null);
   // Fetch user data for searching members
   const [userData, setUserData] = useState([]);
   useEffect(() => {
@@ -63,11 +46,10 @@ const UserManagerProjectPage = () => {
         const res = await UserService.getAllUser();
         // Format userData to suit AutoComplete's requirement
         const formattedUsers = res?.data
-          .filter((user) => user.role !== "admin")
+          .filter((user) => user.role.includes("member"))
           .map((user) => ({
             label: user.name,
-            key: user._id, // Unique key for each user
-            value: user.name, // Value displayed in AutoComplete
+            value: user._id, // Value displayed in AutoComplete
           }));
         setUserData(formattedUsers || []);
       } catch (e) {
@@ -76,42 +58,6 @@ const UserManagerProjectPage = () => {
     };
     fetchUserAll();
   }, []);
-
-  // Handle member selection from AutoComplete
-  const handleSelectMember = (value, option) => {
-    const memberId = option.key; // Lấy id của thành viên từ key
-    const memberLabel = option.value; // Lấy label của thành viên
-
-    // Kiểm tra nếu id thành viên chưa được chọn thì thêm vào danh sách
-    if (memberId && !selectedMembers.some((member) => member.id === memberId)) {
-      setSelectedMembers([
-        ...selectedMembers,
-        { id: memberId, label: memberLabel },
-      ]);
-      setStateAddProject((prevState) => ({
-        ...prevState,
-        members: [
-          ...prevState.members,
-          { userId: memberId, name: memberLabel },
-        ], // Sửa lại thành members
-      }));
-      setInputValue("");
-      setInputVisible(false); // Ẩn input sau khi chọn thành viên
-    } else {
-      Message.error("This member is already in team");
-      setInputValue("");
-    }
-  };
-  // Show input when "+" is clicked
-  const showInput = () => {
-    setInputVisible(true);
-    inputRef.current?.focus();
-  };
-  const handleRemoveMember = (removedMember) => {
-    setSelectedMembers(
-      selectedMembers.filter((member) => member !== removedMember)
-    );
-  };
   //action when adding project
   const [stateAddProject, setStateAddProject] = useState({
     name: "",
@@ -126,6 +72,16 @@ const UserManagerProjectPage = () => {
       ...stateAddProject,
       [e.target.name]: e.target.value,
     });
+  };
+  const handleChangeSelectMember = (value) => {
+    const selectedMembers = value.map((userId) => {
+      const selectedUser = userData.find((user) => user.value === userId);
+      return { userId, name: selectedUser.label }; // Lưu cả userId và name
+    });
+    setStateAddProject((prevState) => ({
+      ...prevState,
+      members: selectedMembers, // Cập nhật danh sách thành viên với userId và name
+    }));
   };
   const onChangeDate = (name, date) => {
     if (date) {
@@ -151,7 +107,6 @@ const UserManagerProjectPage = () => {
 
   const handleCancelAddProject = () => {
     setIsModalAddProject(false);
-    setSelectedMembers([]);
     setStateAddProject({
       name: "",
       description: "",
@@ -178,7 +133,6 @@ const UserManagerProjectPage = () => {
           managerID: infoUser?.id,
           memberIDs: [],
         });
-        setSelectedMembers([]);
         projectQuerry.refetch();
         formAddProject.resetFields();
         setIsModalAddProject(false);
@@ -189,8 +143,6 @@ const UserManagerProjectPage = () => {
       console.log("Failed:", errorInfo);
     }
   };
-  ///task
-  const [isShowTask, SetIsShowTask] = useState(false);
   return (
     <div style={{ minHeight: "100vh", margin: "20px" }}>
       <h2 style={{ fontSize: "18px", paddingBottom: "20px" }}>Projects</h2>
@@ -304,45 +256,20 @@ const UserManagerProjectPage = () => {
               }}
             />
           </Form.Item>
-
           {/* Add Members Section */}
           <Form.Item label="Members">
-            {selectedMembers.map((member) => (
-              <Tag
-                key={member.id}
-                closable
-                onClose={() => handleRemoveMember(member)}
-              >
-                {member.label}
-              </Tag>
-            ))}
-            {inputVisible ? (
-              <AutoComplete
-                style={{
-                  width: 100,
-                }}
-                size="small"
-                options={userData}
-                placeholder="Search members"
-                value={inputValue}
-                onChange={(value) => setInputValue(value)}
-                onSelect={handleSelectMember} // Handle select member
-                filterOption={(inputValue, option) =>
-                  option.value.toUpperCase().includes(inputValue.toUpperCase())
-                }
-              />
-            ) : (
-              <Tag
-                onClick={showInput}
-                style={{ background: "#fff", borderStyle: "dashed" }}
-              >
-                <PlusOutlined /> Add Member
-              </Tag>
-            )}
+            <Select
+              mode="multiple"
+              placeholder="Please select"
+              onChange={handleChangeSelectMember}
+              style={{
+                width: "100%",
+              }}
+              options={userData}
+            />
           </Form.Item>
         </Form>
       </Modal>
-      {isShowTask && <TaskCardComponent />}
     </div>
   );
 };

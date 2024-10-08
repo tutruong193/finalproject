@@ -114,9 +114,68 @@ const getDetailProject = async (req, res) => {
     });
   }
 };
+const updateProject = async (req, res) => {
+  try {
+    const { name, description, members, startDate, endDate, status } = req.body;
+    const projectId = req.params.id;
+    if (!name || !startDate || !endDate) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The input is required",
+      });
+    }
+    if (name.length < 3) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "Project name must be at least 3 characters long",
+      });
+    }
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const now = new Date();
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "Invalid date format",
+      });
+    }
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "Invalid date format",
+      });
+    }
+    if (start > end) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "Start date cannot be later than end date",
+      });
+    }
+    if (start.getTime() === end.getTime()) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "Start date and end date cannot be the same",
+      });
+    }
+    if (start < now || end < now) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "Start date and end date must be after the current date",
+      });
+    }
+    const response = await ProjectService.updateProject(projectId, req.body);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
 module.exports = {
   createProject,
   getAllProject,
   deleteProject,
   getDetailProject,
+  updateProject,
 };

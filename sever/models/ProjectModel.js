@@ -6,14 +6,14 @@ const projectSchema = new mongoose.Schema(
     description: { type: String },
     managerID: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     members: [
-      // Đổi tên từ membersID thành members
       {
         userId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
           required: true,
         },
-        name: { type: String, required: true }, // Chỉ cần type: String
+        name: { type: String, required: true },
+        _id: false,
       },
     ],
     startDate: { type: Date },

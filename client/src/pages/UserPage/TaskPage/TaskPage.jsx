@@ -128,9 +128,6 @@ const TaskPage = () => {
       });
     }
   }
-  const handleChange = (value) => {
-    console.log(`Selected: ${value}`);
-  };
   //add task
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm(); // Form instance
@@ -285,7 +282,7 @@ const TaskPage = () => {
             <Select
               mode="multiple"
               placeholder="Please select"
-              onChange={handleChange}
+              // onChange={handleChange}
               style={{
                 width: "100%",
               }}
