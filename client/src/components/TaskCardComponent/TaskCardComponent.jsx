@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { Card, Checkbox, Avatar, Popover, Button, Modal, Input } from "antd";
+import {
+  Card,
+  Checkbox,
+  Avatar,
+  Popover,
+  Button,
+  Modal,
+  Input,
+  Form,
+  Select,
+  DatePicker,
+} from "antd";
 import {
   DeleteOutlined,
   CheckOutlined,
   FormOutlined,
   InfoCircleOutlined,
   CloseOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import * as TaskService from "../../services/TaskService";
 import avatar from "../../assets/avatar.jpg";
+import * as Message from "../../components/MessageComponent/MessageComponent";
 const { TextArea } = Input;
 const TaskCardComponent = ({ task_id }) => {
   const tags = [
@@ -30,12 +43,15 @@ const TaskCardComponent = ({ task_id }) => {
   ];
   //fetch task data
   const [stateTask, setStateTask] = useState([]);
+  const [subtasks, setSubtasks] = useState([]);
   useEffect(() => {
     const fetchTaskData = async () => {
       try {
         const taskRes = await TaskService.getDetailTask(task_id);
         if (taskRes.status === "OK") {
+          console.log(taskRes.data);
           setStateTask(taskRes.data);
+          setSubtasks(taskRes.data.subtasks || []);
         } else {
           console.error("Error fetching task details");
         }
@@ -45,7 +61,7 @@ const TaskCardComponent = ({ task_id }) => {
     };
     fetchTaskData();
   }, [task_id]);
-  //modal infor task
+  // Modal for task information
   const [isModalTaskInformation, setIsModalTaskInformation] = useState(false);
   const showModal = () => {
     setIsModalTaskInformation(true);
@@ -53,6 +69,56 @@ const TaskCardComponent = ({ task_id }) => {
   const handleCancelTaskInformation = () => {
     setIsModalTaskInformation(false);
   };
+  // Modal for adding subtask
+  const [isSubtaskModalVisible, setIsSubtaskModalVisible] = useState(false);
+  const [formSubtask] = Form.useForm();
+  const options = [];
+  if (stateTask?.assignees) {
+    // Sử dụng members thay vì membersID
+    for (let i = 0; i < stateTask?.assignees.length; i++) {
+      options.push({
+        value: stateTask?.assignees[i].userId, // ID thành viên
+        label: stateTask?.assignees[i].name, // Tên thành viên
+      });
+    }
+  }
+  const showSubtaskModal = () => {
+    setIsSubtaskModalVisible(true);
+  };
+  const handleAddSubtask = async (values) => {
+    try {
+      const values = await formSubtask.validateFields();
+
+      // Lấy thông tin assignees từ stateTask để lưu cả ID và tên
+      const selectedAssignees = values.assignees.map((userId) => {
+        const assignee = stateTask.assignees.find((a) => a.userId === userId);
+        return { userId: assignee.userId, name: assignee.name };
+      });
+
+      // Thêm subtask mới với thông tin đầy đủ của assignees
+      const newSubtask = {
+        ...values,
+        assignees: selectedAssignees, // Lưu cả ID và tên
+      };
+      setSubtasks([...subtasks, newSubtask]);
+      formSubtask.resetFields();
+      setIsSubtaskModalVisible(false);
+    } catch (error) {
+      console.error("Validation failed:", error);
+    }
+  };
+  const handleCancelSubtaskModal = () => {
+    setIsSubtaskModalVisible(false);
+  };
+  const handleSaveTaskInformation = async () => {
+    const res = await TaskService.updateTask(task_id, stateTask, subtasks);
+    if (res.status === "OK") {
+      Message.success(res.message);
+    } else {
+      Message.error(res.message);
+    }
+  };
+  console.log(subtasks);
   return (
     <div>
       <Card
@@ -185,12 +251,8 @@ const TaskCardComponent = ({ task_id }) => {
       <Modal
         title="Task Information"
         open={isModalTaskInformation}
-        footer={[
-          <Button key="cancel" onClick={handleCancelTaskInformation}>
-            Cancel
-          </Button>,
-        ]}
         onCancel={handleCancelTaskInformation}
+        onOk={handleSaveTaskInformation}
       >
         <div className="task-details">
           <div className="task-item">
@@ -231,6 +293,36 @@ const TaskCardComponent = ({ task_id }) => {
               ))}
             </ul>
           </div>
+          <div
+            className="task-item"
+            style={{ display: "flex", flexDirection: "column" }}
+          >
+            <div style={{ display: "flex", flexDirection: "row" }}>
+              <span className="task-label">
+                Subtasks:{" "}
+                <Button
+                  type="dashed"
+                  icon={<PlusOutlined />}
+                  onClick={showSubtaskModal}
+                  style={{ marginTop: "10px" }}
+                >
+                  Add Subtask
+                </Button>
+              </span>
+            </div>
+            <ul className="task-subtasks">
+              {subtasks.length > 0 ? (
+                subtasks.map((subtask, index) => (
+                  <li key={index} className="assignee-item">
+                    {subtask.name} -{" "}
+                    {subtask.dueDate ? subtask.dueDate : "No due date"}
+                  </li>
+                ))
+              ) : (
+                <li>No subtasks</li>
+              )}
+            </ul>
+          </div>
         </div>
         <div className="comment-section">
           <h4>Comments</h4>
@@ -249,6 +341,44 @@ const TaskCardComponent = ({ task_id }) => {
             </Button>
           </div>
         </div>
+      </Modal>
+      <Modal
+        title="Add Subtask"
+        open={isSubtaskModalVisible}
+        onCancel={handleCancelSubtaskModal}
+        onOk={handleAddSubtask}
+      >
+        <Form form={formSubtask} layout="vertical">
+          <Form.Item
+            name="name"
+            label="Subtask Name"
+            rules={[
+              { required: true, message: "Please input the subtask name!" },
+            ]}
+          >
+            <Input placeholder="Enter subtask name" />
+          </Form.Item>
+          <Form.Item
+            name="dueDate"
+            label="Due Date"
+            rules={[{ required: true, message: "Please input the due date!" }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item
+            label="Assign Member"
+            name="assignees"
+            rules={[
+              { required: true, message: "Please input the subtask name!" },
+            ]}
+          >
+            <Select
+              mode="multiple"
+              options={options}
+              style={{ width: "100%" }}
+            ></Select>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

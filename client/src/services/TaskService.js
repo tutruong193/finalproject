@@ -22,3 +22,10 @@ export const getDetailTask = async (taskId) => {
   );
   return res.data;
 };
+export const updateTask = async (taskId, data, subtasks) => {
+  const res = await axios.put(
+    `${process.env.REACT_APP_API_URL}/api/task/update/${taskId}`,
+    { ...data, subtasks }
+  );
+  return res.data;
+};

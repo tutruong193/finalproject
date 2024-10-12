@@ -44,6 +44,39 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    subtasks: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        status: {
+          type: String,
+          enum: ["progress", "completed"],
+          default: "progress",
+        },
+        dueDate: {
+          type: Date,
+          required: true,
+        },
+        assignees: [
+          {
+            userId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "User",
+              required: true,
+            },
+            name: { type: String, required: true },
+            status: {
+              type: String,
+              enum: ["progress", "completed"],
+              required: true,
+              default: "progress",
+            },
+          },
+        ],
+      },
+    ],
   },
   { timestamps: true }
 );

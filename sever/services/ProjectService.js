@@ -122,7 +122,6 @@ const updateProject = (id, data) => {
           message: "Project not found",
         });
       }
-
       // Kiểm tra xem dữ liệu mới có giống hoàn toàn dữ liệu hiện tại không
       const isSameData =
         currentProject.name === name &&
@@ -133,7 +132,6 @@ const updateProject = (id, data) => {
         currentProject.endDate.toISOString() ===
           new Date(endDate).toISOString() &&
         currentProject.status === status;
-
       if (isSameData) {
         return resolve({
           status: "ERR",

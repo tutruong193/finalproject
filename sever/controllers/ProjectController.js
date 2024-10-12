@@ -118,7 +118,7 @@ const updateProject = async (req, res) => {
   try {
     const { name, description, members, startDate, endDate, status } = req.body;
     const projectId = req.params.id;
-    if (!name || !startDate || !endDate) {
+    if (!name || !startDate || !endDate || !projectId) {
       return res.status(200).json({
         status: "ERR",
         message: "The input is required",
