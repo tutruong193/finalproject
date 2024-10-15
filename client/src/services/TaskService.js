@@ -9,9 +9,22 @@ export const getAllTask = async (projectId) => {
   );
   return res.data;
 };
-export const addTask = async (data) => {
+export const createTask = async (data) => {
   const res = await axios.post(
     `${process.env.REACT_APP_API_URL}/api/task/create`,
+    data
+  );
+  return res.data;
+};
+export const deleteTask = async (taskId) => {
+  const res = await axios.delete(
+    `${process.env.REACT_APP_API_URL}/api/task/delete/${taskId}`
+  );
+  return res.data;
+};
+export const addSubTask = async (task_id, data) => {
+  const res = await axios.post(
+    `${process.env.REACT_APP_API_URL}/api/task/create-subtask/${task_id}`,
     data
   );
   return res.data;

@@ -216,9 +216,138 @@ const updateTask = async (id, data) => {
     }
   });
 };
+const updateStatus = async (taskId, subtaskId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const task = await Task.findById(taskId);
+      if (!task) {
+        return resolve({
+          status: "ERR",
+          message: "Task not found",
+        });
+      }
+
+      if (subtaskId) {
+        // Cập nhật trạng thái của subtask nếu subtaskId được truyền vào
+        const subtask = task.subtasks.id(subtaskId);
+        if (!subtask) {
+          return resolve({
+            status: "ERR",
+            message: "Subtask not found",
+          });
+        }
+        subtask.status = "completed";
+      } else {
+        // Nếu không có subtaskId, cập nhật trạng thái của task chính
+        if (task.subtasks.length > 0) {
+          // Kiểm tra xem tất cả các subtasks đã hoàn thành chưa
+          const incompleteSubtasks = task.subtasks.filter(
+            (subtask) => subtask.status !== "completed"
+          );
+          if (incompleteSubtasks.length > 0) {
+            return resolve({
+              status: "ERR",
+              message: "Cannot complete task until all subtasks are completed",
+            });
+          }
+        }
+        task.status = "completed";
+      }
+
+      await task.save();
+
+      resolve({
+        status: "OK",
+        message: subtaskId
+          ? "Subtask status updated successfully"
+          : "Task status updated successfully",
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+};
+const addSubtask = async (id, data) => {
+  return new Promise(async (resolve, reject) => {
+    const { name, dueDate, assignees } = data;
+
+    try {
+      const task = await Task.findById(id);
+      if (!task) {
+        return resolve({
+          status: "ERR",
+          message: "Task not found",
+        });
+      }
+      const project = await Project.findById(task.projectId);
+      if (new Date(project.startDate) > new Date(dueDate)) {
+        return resolve({
+          status: "ERR",
+          message: `Due date of subtask "${name}" cannot be elier than the project start date`,
+        });
+      }
+      if (
+        new Date(task.dueDate) < new Date(dueDate) ||
+        new Date(project.endDate) < new Date(dueDate)
+      ) {
+        return resolve({
+          status: "ERR",
+          message: `Due date of task "${name}" cannot be later than the project end date or the task duedate`,
+        });
+      }
+      const validAssignees = assignees.every((assignee) =>
+        task.assignees.some(
+          (taskAssignee) => taskAssignee.userId.toString() === assignee.userId
+        )
+      );
+      if (!validAssignees) {
+        return resolve({
+          status: "ERR",
+          message: "One or more assignees do not exist in the task's assignees",
+        });
+      }
+      if (task.subtasks.some((subtask) => subtask.name === name)) {
+        return resolve({
+          status: "ERR",
+          message: `A subtask with the name "${name}" already exists in this task`,
+        });
+      }
+      task.subtasks.push({ name, dueDate, assignees });
+      await task.save();
+      resolve({
+        status: "OK",
+        message: "Subtask added successfully",
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+};
+const deleteTask = async (taskId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const task = await Task.findByIdAndDelete(taskId);
+      if (!task) {
+        return resolve({
+          status: "ERR",
+          message: "Task not found",
+        });
+      }
+      resolve({
+        status: "OK",
+        message: "Task Delete successfully",
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+};
 module.exports = {
   createTask,
   getAllTask,
   getDetailTask,
   updateTask,
+  updateStatus,
+  addSubtask,
+  deleteTask,
 };

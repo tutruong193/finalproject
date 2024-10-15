@@ -22,8 +22,9 @@ import {
 import * as TaskService from "../../services/TaskService";
 import avatar from "../../assets/avatar.jpg";
 import * as Message from "../../components/MessageComponent/MessageComponent";
+import SubtaskComponent from "../SubtaskComponent/SubtaskComponent";
 const { TextArea } = Input;
-const TaskCardComponent = ({ task_id }) => {
+const TaskCardComponent = ({ task_id, taskQuery }) => {
   const tags = [
     {
       status: "pending",
@@ -42,23 +43,20 @@ const TaskCardComponent = ({ task_id }) => {
     },
   ];
   //fetch task data
-  const [stateTask, setStateTask] = useState([]);
-  const [subtasks, setSubtasks] = useState([]);
-  useEffect(() => {
-    const fetchTaskData = async () => {
-      try {
-        const taskRes = await TaskService.getDetailTask(task_id);
-        if (taskRes.status === "OK") {
-          console.log(taskRes.data);
-          setStateTask(taskRes.data);
-          setSubtasks(taskRes.data.subtasks || []);
-        } else {
-          console.error("Error fetching task details");
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+  const [stateTask, setStateTask] = useState({ subtasks: [] });
+  const fetchTaskData = async () => {
+    try {
+      const taskRes = await TaskService.getDetailTask(task_id);
+      if (taskRes.status === "OK") {
+        setStateTask(taskRes.data);
+      } else {
+        console.error("Error fetching task details");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+  useEffect(() => {
     fetchTaskData();
   }, [task_id]);
   // Modal for task information
@@ -85,24 +83,28 @@ const TaskCardComponent = ({ task_id }) => {
   const showSubtaskModal = () => {
     setIsSubtaskModalVisible(true);
   };
-  const handleAddSubtask = async (values) => {
+  const handleAddSubtask = async () => {
     try {
       const values = await formSubtask.validateFields();
-
       // Lấy thông tin assignees từ stateTask để lưu cả ID và tên
       const selectedAssignees = values.assignees.map((userId) => {
         const assignee = stateTask.assignees.find((a) => a.userId === userId);
         return { userId: assignee.userId, name: assignee.name };
       });
-
       // Thêm subtask mới với thông tin đầy đủ của assignees
       const newSubtask = {
         ...values,
         assignees: selectedAssignees, // Lưu cả ID và tên
       };
-      setSubtasks([...subtasks, newSubtask]);
-      formSubtask.resetFields();
-      setIsSubtaskModalVisible(false);
+      const res = await TaskService.addSubTask(task_id, newSubtask);
+      if (res.status === "OK") {
+        Message.success(res.message);
+        formSubtask.resetFields();
+        setIsSubtaskModalVisible(false);
+        fetchTaskData();
+      } else {
+        Message.error(res.message);
+      }
     } catch (error) {
       console.error("Validation failed:", error);
     }
@@ -110,15 +112,16 @@ const TaskCardComponent = ({ task_id }) => {
   const handleCancelSubtaskModal = () => {
     setIsSubtaskModalVisible(false);
   };
-  const handleSaveTaskInformation = async () => {
-    const res = await TaskService.updateTask(task_id, stateTask, subtasks);
+  ///delelte task
+  const handleDeleteTask = async () => {
+    const res = await TaskService.deleteTask(task_id);
     if (res.status === "OK") {
-      Message.success(res.message);
-    } else {
+      Message.success();
+      taskQuery.refetch();
+    } else if (res.status === "ERR") {
       Message.error(res.message);
     }
   };
-  console.log(subtasks);
   return (
     <div>
       <Card
@@ -234,6 +237,7 @@ const TaskCardComponent = ({ task_id }) => {
                           padding: 0,
                           justifyContent: "flex-start",
                         }}
+                        onClick={handleDeleteTask}
                       >
                         Delete
                       </Button>
@@ -252,7 +256,8 @@ const TaskCardComponent = ({ task_id }) => {
         title="Task Information"
         open={isModalTaskInformation}
         onCancel={handleCancelTaskInformation}
-        onOk={handleSaveTaskInformation}
+        footer=""
+        // onOk={handleSaveTaskInformation}
       >
         <div className="task-details">
           <div className="task-item">
@@ -310,18 +315,13 @@ const TaskCardComponent = ({ task_id }) => {
                 </Button>
               </span>
             </div>
-            <ul className="task-subtasks">
-              {subtasks.length > 0 ? (
-                subtasks.map((subtask, index) => (
-                  <li key={index} className="assignee-item">
-                    {subtask.name} -{" "}
-                    {subtask.dueDate ? subtask.dueDate : "No due date"}
-                  </li>
-                ))
+            <div className="task-subtasks">
+              {stateTask.subtasks.length > 0 ? (
+                <SubtaskComponent subtaskslist={stateTask.subtasks} />
               ) : (
                 <li>No subtasks</li>
               )}
-            </ul>
+            </div>
           </div>
         </div>
         <div className="comment-section">

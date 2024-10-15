@@ -16,6 +16,7 @@ const taskSchema = new mongoose.Schema(
     },
     assignees: [
       {
+        _id: false,
         userId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
@@ -61,6 +62,7 @@ const taskSchema = new mongoose.Schema(
         },
         assignees: [
           {
+            _id: false,
             userId: {
               type: mongoose.Schema.Types.ObjectId,
               ref: "User",

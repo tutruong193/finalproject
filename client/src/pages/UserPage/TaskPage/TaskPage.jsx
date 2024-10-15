@@ -155,7 +155,7 @@ const TaskPage = () => {
         projectId: projectId,
         assignees: assignees, // Gửi danh sách thành viên đã chọn
       };
-      const res = await TaskService.addTask(newTask);
+      const res = await TaskService.createTask(newTask);
       if (res.status === "OK") {
         Message.success("Task added successfully!");
         handleCancel();
@@ -228,7 +228,10 @@ const TaskPage = () => {
               {
                 // Kiểm tra nếu taskQuery.data là mảng
                 tasks?.data.map((task) => (
-                  <TaskCardComponent key={task._id} task_id={task._id} />
+                  <TaskCardComponent
+                    task_id={task._id}
+                    taskQuery={taskQuery}
+                  />
                 ))
               }
             </div>
@@ -254,11 +257,7 @@ const TaskPage = () => {
           >
             <Input placeholder="Enter task name" />
           </Form.Item>
-          <Form.Item
-            label="Description"
-            name="description"
-            rules={[{ required: true, message: "Please input the task name!" }]}
-          >
+          <Form.Item label="Description" name="description">
             <Input placeholder="Enter task name" />
           </Form.Item>
           <Form.Item

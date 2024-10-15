@@ -25,7 +25,6 @@ const createTask = async (req, res) => {
           "Required fields are missing: name, projectId, dueDate, assignees",
       });
     }
-
     // Gọi service để tạo task
     const response = await TaskService.createTask(req.body);
     return res.status(200).json(response);
@@ -90,9 +89,89 @@ const updateTask = async (req, res) => {
     });
   }
 };
+const updateStatus = async (req, res) => {
+  try {
+    const { taskId, subtaskId } = req.params; // Lấy taskId và subtaskId từ params
+    if (!taskId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "TaskID is required",
+      });
+    }
+    const response = await TaskService.updateStatus(taskId, subtaskId);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+const addSubtask = async (req, res) => {
+  try {
+    const taskId = req.params.id; //
+    if (!taskId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "TaskID is required",
+      });
+    }
+    const response = await TaskService.addSubtask(taskId, req.body);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Something went wrong",
+    });
+  }
+};
+const deleteTask = async (req, res) => {
+  try {
+    const taskId = req.params.id; 
+    if (!taskId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "TaskID is required",
+      });
+    }
+    const response = await TaskService.deleteTask(taskId);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Something went wrong",
+    });
+  }
+};
+const deleteSubTask = async (req, res) => {
+  try {
+    const taskId = req.params.id; //
+    if (!taskId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "TaskID is required",
+      });
+    }
+    const response = await TaskService.addSubtask(taskId, req.body);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Something went wrong",
+    });
+  }
+};
+
 module.exports = {
   createTask,
   getAllTask,
   getDetailTask,
   updateTask,
+  updateStatus,
+  addSubtask,
+  deleteTask,
+  deleteSubTask
 };

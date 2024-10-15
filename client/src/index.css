@@ -373,6 +373,10 @@ p {
   border-bottom: 1px solid #f0f0f0;
 }
 
+.task-subtasks {
+  padding-top: 20px;
+}
+
 .task-label {
   font-weight: 600;
   color: #333;
