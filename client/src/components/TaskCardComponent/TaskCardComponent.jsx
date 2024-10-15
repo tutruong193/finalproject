@@ -23,8 +23,12 @@ import * as TaskService from "../../services/TaskService";
 import avatar from "../../assets/avatar.jpg";
 import * as Message from "../../components/MessageComponent/MessageComponent";
 import SubtaskComponent from "../SubtaskComponent/SubtaskComponent";
+import { jwtTranslate } from "../../ultilis";
+import { useCookies } from "react-cookie";
 const { TextArea } = Input;
 const TaskCardComponent = ({ task_id, taskQuery }) => {
+  const [cookies, setCookie, removeCookie] = useCookies();
+  const user = jwtTranslate(cookies.access_token);
   const tags = [
     {
       status: "pending",
@@ -122,6 +126,16 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
       Message.error(res.message);
     }
   };
+  //change status subtask
+  const HandleChangeStatus = async () => {
+    const res = await TaskService.updateStatus(task_id, 0, user.id);
+    if (res.status === "OK") {
+      Message.success();
+      taskQuery.refetch();
+    } else if (res.status === "ERR") {
+      Message.error(res.message);
+    }
+  };
   return (
     <div>
       <Card
@@ -141,7 +155,10 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
           }}
         >
           <div style={{ display: "flex", gap: "20px" }}>
-            <Checkbox></Checkbox>
+            <Checkbox
+              checked={stateTask.status === "completed"}
+              onChange={() => HandleChangeStatus(task_id)}
+            ></Checkbox>
             <div>
               <div onClick={showModal}>{stateTask.name}</div>
               <div>{stateTask.dueDate}</div>
@@ -162,10 +179,10 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
                   key={member.userId}
                   src={member.avatar || avatar}
                   alt={member.name}
+                  title={member.name}
                 />
               ))}
             </Avatar.Group>
-            ,
           </div>
           <div
             style={{
@@ -280,6 +297,7 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
                   <Avatar
                     src={assignee.avatar || avatar}
                     alt={assignee.name}
+                    title={assignee.name}
                     style={{ marginRight: "10px" }}
                   />
                   <span className="assignee-name">{assignee.name}</span>
@@ -305,14 +323,16 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
             <div style={{ display: "flex", flexDirection: "row" }}>
               <span className="task-label">
                 Subtasks:{" "}
-                <Button
-                  type="dashed"
-                  icon={<PlusOutlined />}
-                  onClick={showSubtaskModal}
-                  style={{ marginTop: "10px" }}
-                >
-                  Add Subtask
-                </Button>
+                {stateTask.status !== "completed" && (
+                  <Button
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                    onClick={showSubtaskModal}
+                    style={{ marginTop: "10px" }}
+                  >
+                    Add Subtask
+                  </Button>
+                )}
               </span>
             </div>
             <div className="task-subtasks">

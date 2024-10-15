@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Card, Checkbox, Avatar, Popover, Button, Input } from "antd";
-import {
-  DeleteOutlined,
-  CheckOutlined,
-  FormOutlined,
-  InfoCircleOutlined,
-} from "@ant-design/icons";
+import { DeleteOutlined, CheckOutlined } from "@ant-design/icons";
 import * as TaskService from "../../services/TaskService";
 import avatar from "../../assets/avatar.jpg";
 import * as Message from "../../components/MessageComponent/MessageComponent";
-const { TextArea } = Input;
-
+import { jwtTranslate } from "../../ultilis";
+import { useCookies } from "react-cookie";
 const SubtaskComponent = ({ subtaskslist, task_id, onSubtaskDeleted }) => {
+  const [cookies, setCookie, removeCookie] = useCookies();
+  const user = jwtTranslate(cookies.access_token);
   const tags = [
     {
       status: "pending",
@@ -29,9 +26,36 @@ const SubtaskComponent = ({ subtaskslist, task_id, onSubtaskDeleted }) => {
       backgroundColor: "rgba(81, 210, 140, .1)",
     },
   ];
+  
   //deleteSubtask
   const handleDeleteSubTask = async (subtaskId) => {
+    const newStatus = !subtaskCheckboxes[subtaskId];
     const res = await TaskService.deleteSubTask(task_id, subtaskId);
+    if (res.status === "OK") {
+      Message.success();
+      setSubtaskCheckboxes((prev) => ({
+        ...prev,
+        [subtaskId]: newStatus, // Update checkbox status
+      }));
+      onSubtaskDeleted();
+    } else if (res.status === "ERR") {
+      Message.error(res.message);
+      setSubtaskCheckboxes((prev) => ({
+        ...prev,
+        [subtaskId]: !newStatus, // Reset to previous status
+      }));
+    }
+  };
+  //set check box với những cái nào đã completed
+  const [subtaskCheckboxes, setSubtaskCheckboxes] = useState(
+    subtaskslist.reduce((acc, subtask) => {
+      acc[subtask._id] = subtask.status === "completed"; // Initialize checkbox based on subtask status
+      return acc;
+    }, {})
+  );
+  //change status subtask
+  const HandleChangeStatus = async (subtaskId) => {
+    const res = await TaskService.updateStatus(task_id, subtaskId, user.id);
     if (res.status === "OK") {
       Message.success();
       onSubtaskDeleted();
@@ -72,7 +96,10 @@ const SubtaskComponent = ({ subtaskslist, task_id, onSubtaskDeleted }) => {
                   justifyContent: "center",
                 }}
               >
-                <Checkbox></Checkbox>
+                <Checkbox
+                  onChange={() => HandleChangeStatus(subtask._id)}
+                  checked={subtaskCheckboxes[subtask._id]}
+                ></Checkbox>
                 <div>{subtask.name}</div>
               </div>
               <div>
@@ -90,10 +117,10 @@ const SubtaskComponent = ({ subtaskslist, task_id, onSubtaskDeleted }) => {
                       key={member.userId}
                       src={member.avatar || avatar}
                       alt={member.name}
+                      title={member.name}
                     />
                   ))}
                 </Avatar.Group>
-                ,
               </div>
               <div
                 style={{
@@ -144,16 +171,18 @@ const SubtaskComponent = ({ subtaskslist, task_id, onSubtaskDeleted }) => {
                   </div>
                   <div style={{ fontSize: "20px" }}>
                     <div style={{ display: "flex", flexDirection: "column" }}>
-                      <Button
-                        type="text"
-                        icon={<DeleteOutlined />}
-                        style={{
-                          textAlign: "left",
-                          padding: 0,
-                          justifyContent: "flex-start",
-                        }}
-                        onClick={() => handleDeleteSubTask(subtask._id)}
-                      ></Button>
+                      {subtask.status !== "completed" && (
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined />}
+                          style={{
+                            textAlign: "left",
+                            padding: 0,
+                            justifyContent: "flex-start",
+                          }}
+                          onClick={() => handleDeleteSubTask(subtask._id)}
+                        ></Button>
+                      )}
                     </div>
                   </div>
                 </div>

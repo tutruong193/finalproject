@@ -89,24 +89,7 @@ const updateTask = async (req, res) => {
     });
   }
 };
-const updateStatus = async (req, res) => {
-  try {
-    const { taskId, subtaskId } = req.params; // Lấy taskId và subtaskId từ params
-    if (!taskId) {
-      return res.status(400).json({
-        status: "ERR",
-        message: "TaskID is required",
-      });
-    }
-    const response = await TaskService.updateStatus(taskId, subtaskId);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(404).json({
-      message: e,
-    });
-  }
-};
+
 const addSubtask = async (req, res) => {
   try {
     const taskId = req.params.id; //
@@ -128,7 +111,7 @@ const addSubtask = async (req, res) => {
 };
 const deleteTask = async (req, res) => {
   try {
-    const taskId = req.params.id; 
+    const taskId = req.params.id;
     if (!taskId) {
       return res.status(400).json({
         status: "ERR",
@@ -147,7 +130,7 @@ const deleteTask = async (req, res) => {
 };
 const deleteSubTask = async (req, res) => {
   try {
-    const {taskId, subtaskId} = req.params; //
+    const { taskId, subtaskId } = req.params; //
     if (!taskId || !subtaskId) {
       return res.status(400).json({
         status: "ERR",
@@ -164,7 +147,25 @@ const deleteSubTask = async (req, res) => {
     });
   }
 };
-
+const updateStatus = async (req, res) => {
+  try {
+    const { taskId, subtaskId, userId } = req.params; // Lấy taskId và subtaskId từ params
+    if (!taskId || !userId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "TaskID or UserID is required",
+      });
+    }
+    console.log(taskId, subtaskId, userId);
+    const response = await TaskService.updateStatus(taskId, subtaskId, userId);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
 module.exports = {
   createTask,
   getAllTask,
@@ -173,5 +174,5 @@ module.exports = {
   updateStatus,
   addSubtask,
   deleteTask,
-  deleteSubTask
+  deleteSubTask,
 };
