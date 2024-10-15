@@ -317,7 +317,11 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
             </div>
             <div className="task-subtasks">
               {stateTask.subtasks.length > 0 ? (
-                <SubtaskComponent subtaskslist={stateTask.subtasks} />
+                <SubtaskComponent
+                  subtaskslist={stateTask.subtasks}
+                  task_id={task_id}
+                  onSubtaskDeleted={fetchTaskData}
+                />
               ) : (
                 <li>No subtasks</li>
               )}

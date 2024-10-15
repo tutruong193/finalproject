@@ -22,6 +22,12 @@ export const deleteTask = async (taskId) => {
   );
   return res.data;
 };
+export const deleteSubTask = async (taskId, subtaskId) => {
+  const res = await axios.delete(
+    `${process.env.REACT_APP_API_URL}/api/task/delete/task/${taskId}/subtask/${subtaskId}`
+  );
+  return res.data;
+};
 export const addSubTask = async (task_id, data) => {
   const res = await axios.post(
     `${process.env.REACT_APP_API_URL}/api/task/create-subtask/${task_id}`,

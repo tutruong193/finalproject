@@ -147,14 +147,14 @@ const deleteTask = async (req, res) => {
 };
 const deleteSubTask = async (req, res) => {
   try {
-    const taskId = req.params.id; //
-    if (!taskId) {
+    const {taskId, subtaskId} = req.params; //
+    if (!taskId || !subtaskId) {
       return res.status(400).json({
         status: "ERR",
-        message: "TaskID is required",
+        message: "TaskID or SubtaskID is required",
       });
     }
-    const response = await TaskService.addSubtask(taskId, req.body);
+    const response = await TaskService.deleteSubtask(taskId, subtaskId);
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);

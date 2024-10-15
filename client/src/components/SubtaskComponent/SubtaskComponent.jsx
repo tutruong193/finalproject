@@ -11,7 +11,7 @@ import avatar from "../../assets/avatar.jpg";
 import * as Message from "../../components/MessageComponent/MessageComponent";
 const { TextArea } = Input;
 
-const SubtaskComponent = ({ subtaskslist }) => {
+const SubtaskComponent = ({ subtaskslist, task_id, onSubtaskDeleted }) => {
   const tags = [
     {
       status: "pending",
@@ -29,11 +29,22 @@ const SubtaskComponent = ({ subtaskslist }) => {
       backgroundColor: "rgba(81, 210, 140, .1)",
     },
   ];
+  //deleteSubtask
+  const handleDeleteSubTask = async (subtaskId) => {
+    const res = await TaskService.deleteSubTask(task_id, subtaskId);
+    if (res.status === "OK") {
+      Message.success();
+      onSubtaskDeleted();
+    } else if (res.status === "ERR") {
+      Message.error(res.message);
+    }
+  };
   return (
     <div>
       {subtaskslist?.length > 0 ? (
         subtaskslist.map((subtask) => (
           <Card
+            key={subtask._id}
             style={{
               width: "100%",
               borderRadius: "10px",
@@ -132,28 +143,18 @@ const SubtaskComponent = ({ subtaskslist }) => {
                     /{subtask?.assignees?.length}
                   </div>
                   <div style={{ fontSize: "20px" }}>
-                    <Popover
-                      content={
-                        <div
-                          style={{ display: "flex", flexDirection: "column" }}
-                        >
-                          <Button
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            style={{
-                              textAlign: "left",
-                              padding: 0,
-                              justifyContent: "flex-start",
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      }
-                      trigger="click"
-                    >
-                      <InfoCircleOutlined />
-                    </Popover>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <Button
+                        type="text"
+                        icon={<DeleteOutlined />}
+                        style={{
+                          textAlign: "left",
+                          padding: 0,
+                          justifyContent: "flex-start",
+                        }}
+                        onClick={() => handleDeleteSubTask(subtask._id)}
+                      ></Button>
+                    </div>
                   </div>
                 </div>
               </div>

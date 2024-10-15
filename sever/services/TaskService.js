@@ -342,6 +342,43 @@ const deleteTask = async (taskId) => {
     }
   });
 };
+const deleteSubtask = async (taskId, subtaskId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Tìm task dựa trên taskId
+      const task = await Task.findById(taskId);
+      if (!task) {
+        return resolve({
+          status: "ERR",
+          message: "Task not found",
+        });
+      }
+      const subtaskIndex = task.subtasks.findIndex(
+        (subtask) => subtask.id === subtaskId
+      );
+      if (subtaskIndex === -1) {
+        return resolve({
+          status: "ERR",
+          message: "Subtask not found",
+        });
+      }
+      task.subtasks.splice(subtaskIndex, 1);
+      await task.save();
+
+      resolve({
+        status: "OK",
+        message: "Subtask deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting subtask:", error);
+      reject({
+        status: "ERR",
+        message: "Server error",
+      });
+    }
+  });
+};
+
 module.exports = {
   createTask,
   getAllTask,
@@ -350,4 +387,5 @@ module.exports = {
   updateStatus,
   addSubtask,
   deleteTask,
+  deleteSubtask,
 };
