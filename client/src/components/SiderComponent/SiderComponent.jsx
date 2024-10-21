@@ -14,11 +14,7 @@ const SiderComponent = () => {
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
   const isManager = infoUser?.role?.includes("manager");
   const isAdmin = infoUser?.role?.includes("admin");
-  const defaultSelectedKey = isAdmin
-    ? "admin_account"
-    : isManager
-    ? "user_manage_project"
-    : "user_project";
+  const defaultSelectedKey = isAdmin ? "admin_account" : "user_project";
 
   // Xác định menu items dựa trên vai trò của người dùng
   const items = isAdmin
@@ -40,27 +36,18 @@ const SiderComponent = () => {
         },
       ]
     : [
-        ...(isManager
-          ? [
-              {
-                key: "user_manage_project",
-                icon: <SearchOutlined />,
-                label: "Manage Project",
-              },
-            ]
-          : []),
         {
           key: "user_project",
           icon: <SearchOutlined />,
-          label: "Project",
+          label: isManager ? "Manage Project" : "Project",
         },
+
         {
           key: "user_notification",
           icon: <BellOutlined />,
           label: "Notification",
         },
       ];
-
   // Xử lý khi người dùng click vào menu
   const handleMenuClick = (e) => {
     switch (e.key) {
@@ -73,11 +60,8 @@ const SiderComponent = () => {
       case "admin_notification":
         navigate("/system/admin/notification");
         break;
-      case "user_manage_project":
-        navigate("/system/user/manager");
-        break;
       case "user_project":
-        navigate("/system/user/project");
+        navigate("/system/user/manager");
         break;
       case "user_notification":
         navigate("/system/user/notification");

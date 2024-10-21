@@ -37,7 +37,11 @@ const LoginPage = () => {
       if (user?.role.includes("admin")) {
         navigate("/system/admin/accounts");
       } else if (!user?.role.includes("admin")) {
-        navigate("/system/user/manager");
+        if (user?.role.includes("manager")) {
+          navigate("/system/user/manager");
+        } else {
+          navigate("/system/user/project");
+        }
       } else {
         navigate("/login");
       }

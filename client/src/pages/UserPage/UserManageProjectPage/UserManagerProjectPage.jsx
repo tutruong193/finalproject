@@ -32,7 +32,9 @@ const UserManagerProjectPage = () => {
 
   const { data: projects } = projectQuerry;
   const dataProject = projects?.data?.filter(
-    (project) => project.managerID === infoUser?.id
+    (project) =>
+      project.managerID === infoUser?.id ||
+      project.members?.some((member) => member.userId === infoUser?.id)
   );
 
   // Modal add project
@@ -85,11 +87,7 @@ const UserManagerProjectPage = () => {
   };
   const onChangeDate = (name, date) => {
     if (date) {
-      const selectedDate = new Date(date);
-      const year = selectedDate.getFullYear();
-      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-      const day = String(selectedDate.getDate()).padStart(2, "0");
-      const formattedDate = `${year}-${month}-${day}`;
+      const formattedDate = date.utc().format("YYYY-MM-DDTHH:mm:ss[Z]"); // Sử dụng định dạng UTC ISO
       setStateAddProject((prevState) => ({
         ...prevState,
         [name]: formattedDate,
@@ -118,7 +116,6 @@ const UserManagerProjectPage = () => {
     formAddProject.resetFields();
     projectQuerry.refetch();
   };
-
   const handleAddProject = async () => {
     try {
       await formAddProject.validateFields();
@@ -148,17 +145,20 @@ const UserManagerProjectPage = () => {
       <h2 style={{ fontSize: "18px", paddingBottom: "20px" }}>Projects</h2>
       <div>
         <div className="container_action">
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            style={{
-              color: "#038edc",
-              backgroundColor: "rgba(3, 142, 220, .1)",
-            }}
-            onClick={showModalAddProject}
-          >
-            Add project
-          </Button>
+          {infoUser.role.includes("manager") && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              style={{
+                color: "#038edc",
+                backgroundColor: "rgba(3, 142, 220, .1)",
+              }}
+              onClick={showModalAddProject}
+            >
+              Add project
+            </Button>
+          )}
+
           <div className="container_action_right">
             <Input placeholder="default size" prefix={<SearchOutlined />} />
             <Button

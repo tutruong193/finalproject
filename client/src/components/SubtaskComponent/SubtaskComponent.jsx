@@ -55,7 +55,7 @@ const SubtaskComponent = ({ subtaskslist, task_id, onSubtaskDeleted }) => {
   );
   //change status subtask
   const HandleChangeStatus = async (subtaskId) => {
-    const res = await TaskService.updateStatus(task_id, subtaskId, user.id);
+    const res = await TaskService.updateStatusSubtask(task_id, subtaskId, user.id);
     if (res.status === "OK") {
       Message.success();
       onSubtaskDeleted();

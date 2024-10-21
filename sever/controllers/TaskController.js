@@ -1,4 +1,5 @@
 const TaskService = require("../services/TaskService");
+const moment = require("moment-timezone");
 const createTask = async (req, res) => {
   try {
     const {
@@ -25,8 +26,19 @@ const createTask = async (req, res) => {
           "Required fields are missing: name, projectId, dueDate, assignees",
       });
     }
+    // Chuyển đổi dueDate về UTC
+    const dueDateUTC = moment.utc(dueDate);
+    if (!dueDateUTC.isValid()) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "Invalid due date format",
+      });
+    }
     // Gọi service để tạo task
-    const response = await TaskService.createTask(req.body);
+    const response = await TaskService.createTask({
+      ...req.body,
+      dueDate: dueDateUTC.toDate(), // Chuyển đổi về định dạng UTC
+    });
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
@@ -36,7 +48,6 @@ const createTask = async (req, res) => {
     });
   }
 };
-
 const getAllTask = async (req, res) => {
   try {
     const { projectId } = req.query;
@@ -89,7 +100,6 @@ const updateTask = async (req, res) => {
     });
   }
 };
-
 const addSubtask = async (req, res) => {
   try {
     const taskId = req.params.id; //
@@ -147,7 +157,7 @@ const deleteSubTask = async (req, res) => {
     });
   }
 };
-const updateStatus = async (req, res) => {
+const updateStatusSubtask = async (req, res) => {
   try {
     const { taskId, subtaskId, userId } = req.params; // Lấy taskId và subtaskId từ params
     if (!taskId || !userId) {
@@ -156,8 +166,29 @@ const updateStatus = async (req, res) => {
         message: "TaskID or UserID is required",
       });
     }
-    console.log(taskId, subtaskId, userId);
-    const response = await TaskService.updateStatus(taskId, subtaskId, userId);
+    const response = await TaskService.updateStatusSubtask(
+      taskId,
+      subtaskId,
+      userId
+    );
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+const updateStatusTask = async (req, res) => {
+  try {
+    const { taskId, userId } = req.params; // Lấy taskId và subtaskId từ params
+    if (!taskId || !userId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "TaskID or UserID is required",
+      });
+    }
+    const response = await TaskService.updateStatusTask(taskId, userId);
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
@@ -171,7 +202,8 @@ module.exports = {
   getAllTask,
   getDetailTask,
   updateTask,
-  updateStatus,
+  updateStatusTask,
+  updateStatusSubtask,
   addSubtask,
   deleteTask,
   deleteSubTask,

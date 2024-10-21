@@ -1,6 +1,7 @@
 const Project = require("../models/ProjectModel");
 const User = require("../models/UserModel");
-
+const Task = require("../models/TaskModel");
+const moment = require("moment-timezone");
 const createProject = (data) => {
   return new Promise(async (resolve, reject) => {
     const {
@@ -87,13 +88,31 @@ const getAllProject = async () => {
 const deleteProject = async (id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      await Project.findByIdAndDelete(id);
+      const project = await Project.findByIdAndDelete(id);
+      if (!project) {
+        return resolve({
+          status: "ERR",
+          message: "Project not found",
+        });
+      }
+      const deletedTasks = await Task.find({ projectId: id });
+      if (deletedTasks.length > 0) {
+        await Promise.all(
+          deletedTasks.map(async (task) => {
+            await Task.findByIdAndDelete(task._id);
+          })
+        );
+      }
       resolve({
         status: "OK",
-        message: "SUCCESS",
+        message: "Project and related tasks deleted successfully",
       });
     } catch (error) {
-      throw error;
+      reject({
+        status: "ERR",
+        message: "An error occurred",
+        error: error.message,
+      });
     }
   });
 };
@@ -164,8 +183,8 @@ const updateProject = (id, data) => {
       currentProject.name = name;
       currentProject.description = description;
       currentProject.members = validMembers;
-      currentProject.startDate = startDate;
-      currentProject.endDate = endDate;
+      currentProject.startDate = new Date(startDate); // Đảm bảo là đối tượng Date
+      currentProject.endDate = new Date(endDate); // Đảm bảo là đối tượng Date
       currentProject.status = status;
       const updatedProject = await currentProject.save();
       if (updatedProject) {
@@ -185,6 +204,57 @@ const updateProject = (id, data) => {
     }
   });
 };
+// Hàm kiểm tra các project hết hạn
+const checkProjects = async () => {
+  try {
+    const now = new Date(); // Thời gian hiện tại
+
+    // 1. Tìm các project có trạng thái "progress" và kiểm tra xem có hết hạn không
+    const projectsInProgress = await Project.find({
+      status: "progress",
+    });
+
+    for (let project of projectsInProgress) {
+      if (project.endDate < now) {
+        // Dự án đã hết hạn, kiểm tra các task liên quan
+        const projectTasks = await Task.find({ projectId: project._id });
+
+        const allTasksCompleted = projectTasks.every(
+          (task) => task.status === "completed"
+        );
+
+        if (allTasksCompleted) {
+          // Nếu tất cả task đã hoàn thành, đổi trạng thái thành "completed"
+          project.status = "completed";
+        } else {
+          // Nếu có task chưa hoàn thành, đổi trạng thái thành "incompleted"
+          project.status = "incompleted";
+        }
+
+        await project.save(); // Lưu project sau khi cập nhật trạng thái
+      }
+    }
+
+    // 2. Tìm các project có trạng thái "pending" và kiểm tra nếu cần đổi thành "progress"
+    const pendingProjects = await Project.find({
+      status: "pending",
+    });
+
+    for (let project of pendingProjects) {
+      if (project.startDate < now && project.endDate > now) {
+        // Nếu thời gian hiện tại nằm giữa startDate và endDate, chuyển thành "progress"
+        project.status = "progress";
+        await project.save(); // Lưu project sau khi cập nhật
+      }
+    }
+
+    console.log("Project status check completed!");
+  } catch (error) {
+    console.error("Error checking project status:", error);
+  }
+};
+// Tự động chạy hàm kiểm tra mỗi phút
+setInterval(checkProjects, 60 * 1000); // 60 * 1000 = 1 phút
 module.exports = {
   createProject,
   getAllProject,

@@ -25,6 +25,7 @@ import * as Message from "../../components/MessageComponent/MessageComponent";
 import SubtaskComponent from "../SubtaskComponent/SubtaskComponent";
 import { jwtTranslate } from "../../ultilis";
 import { useCookies } from "react-cookie";
+import dayjs from "dayjs";
 const { TextArea } = Input;
 const TaskCardComponent = ({ task_id, taskQuery }) => {
   const [cookies, setCookie, removeCookie] = useCookies();
@@ -128,7 +129,7 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
   };
   //change status subtask
   const HandleChangeStatus = async () => {
-    const res = await TaskService.updateStatus(task_id, 0, user.id);
+    const res = await TaskService.updateStatusTask(task_id, user.id);
     if (res.status === "OK") {
       Message.success();
       taskQuery.refetch();
@@ -161,7 +162,9 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
             ></Checkbox>
             <div>
               <div onClick={showModal}>{stateTask.name}</div>
-              <div>{stateTask.dueDate}</div>
+              <div>
+                {dayjs(stateTask.dueDate).local().format("HH:mm DD-MM-YYYY")}
+              </div>
             </div>
           </div>
           <div>

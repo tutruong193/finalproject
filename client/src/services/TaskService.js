@@ -48,9 +48,15 @@ export const updateTask = async (taskId, data, subtasks) => {
   );
   return res.data;
 };
-export const updateStatus = async (taskId, subtaskId, userId) => {
+export const updateStatusSubtask = async (taskId, subtaskId, userId) => {
   const res = await axios.put(
     `${process.env.REACT_APP_API_URL}/api/task/update_status/task/${taskId}/subtask/${subtaskId}/user/${userId}`
+  );
+  return res.data;
+};
+export const updateStatusTask = async (taskId, userId) => {
+  const res = await axios.put(
+    `${process.env.REACT_APP_API_URL}/api/task/update_status/task/${taskId}/user/${userId}`
   );
   return res.data;
 };

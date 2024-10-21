@@ -21,8 +21,10 @@ import { useNavigate } from "react-router-dom";
 import * as ProjectService from "../../services/ProjectService";
 import * as Message from "../../components/MessageComponent/MessageComponent";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import avatar from "../../assets/avatar.jpg";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   const navigate = useNavigate();
@@ -124,8 +126,8 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
     formEdit.setFieldsValue({
       name: stateProject.name,
       description: stateProject.description,
-      startDate: dayjs(stateProject.startDate, "YYYY-MM-DD"), // Cần chuyển về định dạng dayjs
-      endDate: dayjs(stateProject.endDate, "YYYY-MM-DD"),
+      startDate: dayjs(stateProject.startDate).local(), // Chuyển đổi về múi giờ địa phương
+      endDate: dayjs(stateProject.endDate).local(),
       status: stateProject.status,
     });
   };
@@ -150,7 +152,6 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       Message.error("Failed to update project");
     }
   };
-
   const handleCancelEdit = () => {
     setIsEditModalVisible(false);
   };
@@ -215,6 +216,7 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
                 key={member.userId}
                 src={member.avatar || avatar}
                 alt={member.name}
+                title={member.name}
               />
             ))}
           </Avatar.Group>,
@@ -236,9 +238,13 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
         ]}
       >
         <div>
-          <div>{stateProject?.description}</div>
-          <div>{stateProject?.startDate}</div>
-          <div>{stateProject?.endDate}</div>
+          <div>{stateProject?.description || " "}</div>
+          <div>
+            {dayjs(stateProject?.startDate).local().format("HH:mm DD-MM-YYYY")}
+          </div>
+          <div>
+            {dayjs(stateProject?.endDate).local().format("HH:mm DD-MM-YYYY")}
+          </div>
         </div>
       </Card>
       <Modal
@@ -265,7 +271,11 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
               defaultValue={stateProject.members}
               mode="multiple"
               onChange={handleChangeSelectMember}
-              options={stateProject.members}
+              options={
+                stateProject.members.length > 0
+                  ? stateProject.members
+                  : userData
+              }
               placeholder="Select members"
               style={{ width: "100%" }}
             />

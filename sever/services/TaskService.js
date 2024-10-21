@@ -1,20 +1,19 @@
 const Task = require("../models/TaskModel");
 const Project = require("../models/ProjectModel");
 const User = require("../models/UserModel");
+const moment = require("moment-timezone");
 const createTask = (data) => {
   return new Promise(async (resolve, reject) => {
     const {
       name,
       projectId,
       dueDate,
-      assignees, // Sử dụng mảng assignees
+      assignees,
       priority,
       status,
       description,
     } = data;
-
     try {
-      // Kiểm tra projectId có tồn tại không
       const project = await Project.findById(projectId);
       if (!project) {
         return resolve({
@@ -22,16 +21,19 @@ const createTask = (data) => {
           message: "Project not found",
         });
       }
-      if (new Date(project.endDate) < new Date(dueDate)) {
+      const dueDateUTC = moment.utc(dueDate);
+      const projectEndDate = moment.utc(project.endDate);
+      const projectStartDate = moment.utc(project.startDate);
+      if (projectEndDate < dueDateUTC) {
         return resolve({
           status: "ERR",
           message: `Due date of task "${name}" cannot be later than the project end date`,
         });
       }
-      if (new Date(project.startDate) > new Date(dueDate)) {
+      if (projectStartDate > dueDateUTC) {
         return resolve({
           status: "ERR",
-          message: `Due date of task "${name}" cannot be elier than the project start date`,
+          message: `Due date of task "${name}" cannot be earlier than the project start date`,
         });
       }
       const checkTask = await Task.findOne({ name: name });
@@ -327,7 +329,7 @@ const deleteSubtask = async (taskId, subtaskId) => {
     }
   });
 };
-const updateStatus = async (taskId, subtaskId, userId) => {
+const updateStatusSubtask = async (taskId, subtaskId, userId) => {
   return new Promise(async (resolve, reject) => {
     try {
       const task = await Task.findById(taskId);
@@ -338,15 +340,34 @@ const updateStatus = async (taskId, subtaskId, userId) => {
         });
       }
 
-      if (subtaskId !== "0") {
-        // Cập nhật trạng thái của subtask nếu subtaskId được truyền vào
-        const subtask = task.subtasks.id(subtaskId);
-        if (!subtask) {
-          return resolve({
-            status: "ERR",
-            message: "Subtask not found",
-          });
-        }
+      // Cập nhật trạng thái của subtask nếu subtaskId được truyền vào
+      const subtask = task.subtasks.id(subtaskId);
+      if (!subtask) {
+        return resolve({
+          status: "ERR",
+          message: "Subtask not found",
+        });
+      }
+
+      // Nếu trạng thái của subtask là "completed", cập nhật lại thành "in progress"
+      if (subtask.status === "completed") {
+        subtask.status = "progress";
+
+        // Cập nhật trạng thái của tất cả các assignees trong subtask thành "in progress"
+        subtask.assignees.forEach((assignee) => {
+          if (assignee.status === "completed") {
+            assignee.status = "progress";
+          }
+        });
+
+        // Cập nhật trạng thái task thành "in progress" nếu subtask đã thay đổi
+        task.status = "progress";
+        const userInAsignee = task.assignees.find(
+          (assignee) => assignee.userId.toString() === userId
+        );
+        console.log(userInAsignee);
+        userInAsignee.status = "progress";
+      } else {
         // Tìm assignee theo userId
         const assignee = subtask.assignees.find(
           (a) => a.userId.toString() === userId
@@ -357,13 +378,14 @@ const updateStatus = async (taskId, subtaskId, userId) => {
             message: "User not assigned to this subtask",
           });
         }
-        // Cập nhật trạng thái assignee thành completed
+
+        // Cập nhật trạng thái assignee thành "completed"
         assignee.status = "completed";
+
         // Kiểm tra xem người dùng đã hoàn thành tất cả các subtasks của họ chưa
         const userSubtasks = task.subtasks.filter((st) =>
           st.assignees.some((a) => a.userId.toString() === userId)
         );
-
         const userCompleted = userSubtasks.every((st) =>
           st.assignees.some(
             (a) => a.userId.toString() === userId && a.status === "completed"
@@ -379,6 +401,7 @@ const updateStatus = async (taskId, subtaskId, userId) => {
             taskAssignee.status = "completed";
           }
         }
+
         // Kiểm tra xem tất cả assignees của subtask đã hoàn thành chưa
         const allCompleted = subtask.assignees.every(
           (a) => a.status === "completed"
@@ -386,6 +409,7 @@ const updateStatus = async (taskId, subtaskId, userId) => {
         if (allCompleted) {
           subtask.status = "completed";
         }
+
         // Kiểm tra xem tất cả subtasks của task đã hoàn thành chưa
         const allSubtasksCompleted = task.subtasks.every(
           (st) => st.status === "completed"
@@ -393,56 +417,115 @@ const updateStatus = async (taskId, subtaskId, userId) => {
         if (allSubtasksCompleted) {
           task.status = "completed";
         }
-        // Kiểm tra xem tất cả tasks trong project đã hoàn thành chưa
-        const allTasksCompleted = await Task.find({
-          projectId: task.projectId,
-        }).every((t) => t.status === "completed");
 
-        // Nếu tất cả tasks đã hoàn thành, cập nhật trạng thái của project thành completed
-        if (allTasksCompleted) {
-          await Project.findByIdAndUpdate(task.projectId, {
-            status: "completed",
-          });
-        }
-      } else {
-        // Nếu không có subtaskId, cập nhật trạng thái của assignee trong task
-        const assignee = task.assignees.find(
-          (a) => a.userId.toString() === userId
-        );
-        if (!assignee) {
-          return resolve({
-            status: "ERR",
-            message: "User not assigned to this task",
-          });
-        }
-        // Cập nhật trạng thái assignee thành completed
-        assignee.status = "completed";
-        // Kiểm tra xem tất cả assignees của task đã hoàn thành chưa
-        const allTaskAssigneesCompleted = task.assignees.every(
-          (a) => a.status === "completed"
-        );
-        if (allTaskAssigneesCompleted) {
-          task.status = "completed";
-        }
-        task.status = "completed";
         // Kiểm tra xem tất cả tasks trong project đã hoàn thành chưa
-        const tasks = await Task.find({
+        const allTasksOfProject = await Task.find({
           projectId: task.projectId,
         });
-        const allTasksCompleted = tasks.every((t) => t.status === "completed");
-        // Nếu tất cả tasks đã hoàn thành, cập nhật trạng thái của project thành completed
+        const allTasksCompleted = allTasksOfProject.every(
+          (t) => t.status === "completed"
+        );
+
+        // Nếu tất cả tasks đã hoàn thành, cập nhật trạng thái của project thành "completed"
         if (allTasksCompleted) {
           await Project.findByIdAndUpdate(task.projectId, {
             status: "completed",
           });
         }
       }
+
       await task.save();
       resolve({
         status: "OK",
         message: subtaskId
           ? "Subtask status updated successfully"
           : "Task status updated successfully",
+      });
+    } catch (error) {
+      return reject({
+        status: "ERR",
+        message: "An error occurred during subtask status update",
+        error,
+      });
+    }
+  });
+};
+
+const updateStatusTask = async (taskId, userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const task = await Task.findById(taskId);
+      if (!task) {
+        return resolve({
+          status: "ERR",
+          message: "Task not found",
+        });
+      }
+      //cập nhật trạng thái của assignee trong task
+      const assignee = task.assignees.find(
+        (a) => a.userId.toString() === userId
+      );
+      if (!assignee) {
+        return resolve({
+          status: "ERR",
+          message: "User not assigned to this task",
+        });
+      }
+      // Nếu trạng thái của assignee đã là "completed", cập nhật lại thành "progress"
+      if (assignee.status === "completed") {
+        assignee.status = "progress";
+        task.status = "progress";
+        if (task.subtasks && task.subtasks.length > 0) {
+          const findSubtask = task.subtasks.find(
+            (a) => a.userId.toString() === userId
+          );
+          console.log(findSubtask);
+        }
+
+        await task.save();
+        return resolve({
+          status: "OK",
+          message:
+            "Task and related subtasks/assignees status updated to 'progress'",
+        });
+      }
+      const allSubtasksCompleted = task.subtasks.every(
+        (subtask) => subtask.status === "completed"
+      );
+      if (task.subtasks.length > 0) {
+        if (allSubtasksCompleted) {
+          assignee.status = "completed";
+        } else {
+          return resolve({
+            status: "ERR",
+            message: "Subtask doesn't complete",
+          });
+        }
+      } else {
+        assignee.status = "completed";
+      }
+      // Kiểm tra xem tất cả assignees của task đã hoàn thành chưa
+      const allTaskAssigneesCompleted = task.assignees.every(
+        (a) => a.status === "completed"
+      );
+      if (allTaskAssigneesCompleted) {
+        task.status = "completed";
+      }
+      // Kiểm tra xem tất cả tasks trong project đã hoàn thành chưa
+      const tasks = await Task.find({
+        projectId: task.projectId,
+      });
+      const allTasksCompleted = tasks.every((t) => t.status === "completed");
+      // Nếu tất cả tasks đã hoàn thành, cập nhật trạng thái của project thành completed
+      if (allTasksCompleted) {
+        await Project.findByIdAndUpdate(task.projectId, {
+          status: "completed",
+        });
+      }
+      await task.save();
+      resolve({
+        status: "OK",
+        message: "Task status updated successfully",
       });
     } catch (error) {
       throw error;
@@ -454,7 +537,8 @@ module.exports = {
   getAllTask,
   getDetailTask,
   updateTask,
-  updateStatus,
+  updateStatusTask,
+  updateStatusSubtask,
   addSubtask,
   deleteTask,
   deleteSubtask,

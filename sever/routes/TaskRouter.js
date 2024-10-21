@@ -12,5 +12,12 @@ router.delete(
 );
 router.get("/detail/:id", TaskController.getDetailTask);
 router.put("/update/:id", TaskController.updateTask);
-router.put("/update_status/task/:taskId/subtask/:subtaskId/user/:userId", TaskController.updateStatus);
+router.put(
+  "/update_status/task/:taskId/subtask/:subtaskId/user/:userId",
+  TaskController.updateStatusSubtask
+);
+router.put(
+  "/update_status/task/:taskId/user/:userId",
+  TaskController.updateStatusTask
+);
 module.exports = router;

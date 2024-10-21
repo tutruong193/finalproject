@@ -21,6 +21,13 @@ export const routes = [
     isShowSider: true,
   },
   {
+    path: "/system/user/project",
+    page: UserManagerProjectPage,
+    isShowHeader: true,
+    requiresAuth: true,
+    isShowSider: true,
+  },
+  {
     path: "/system/user/manager/project", // Add this route
     page: TaskPage,
     isShowHeader: true,

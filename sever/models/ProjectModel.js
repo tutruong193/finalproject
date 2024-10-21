@@ -20,7 +20,7 @@ const projectSchema = new mongoose.Schema(
     endDate: { type: Date },
     status: {
       type: String,
-      enum: ["pending", "progress", "completed"],
+      enum: ["pending", "progress", "completed", "incompleted"],
       default: "pending",
     },
   },

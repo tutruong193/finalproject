@@ -1,4 +1,5 @@
 const ProjectService = require("../services/ProjectService");
+const moment = require("moment-timezone");
 const createProject = async (req, res) => {
   try {
     const {
@@ -10,6 +11,8 @@ const createProject = async (req, res) => {
       endDate,
       status,
     } = req.body;
+
+    // Kiểm tra các giá trị bắt buộc
     if (!name || !startDate || !endDate) {
       return res.status(200).json({
         status: "ERR",
@@ -28,28 +31,27 @@ const createProject = async (req, res) => {
         message: "Project name must be at least 3 characters long",
       });
     }
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const now = new Date();
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+
+    // Chuyển đổi startDate và endDate sang UTC trước khi lưu trữ
+    const start = moment.utc(startDate); // Chuyển đổi sang UTC
+    const end = moment.utc(endDate); // Chuyển đổi sang UTC
+    const now = moment.utc();
+
+    // Kiểm tra định dạng ngày
+    if (!start.isValid() || !end.isValid()) {
       return res.status(200).json({
         status: "ERR",
         message: "Invalid date format",
       });
     }
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return res.status(200).json({
-        status: "ERR",
-        message: "Invalid date format",
-      });
-    }
+    // Kiểm tra logic ngày tháng
     if (start > end) {
       return res.status(200).json({
         status: "ERR",
         message: "Start date cannot be later than end date",
       });
     }
-    if (start.getTime() === end.getTime()) {
+    if (start.isSame(end)) {
       return res.status(200).json({
         status: "ERR",
         message: "Start date and end date cannot be the same",
@@ -61,7 +63,14 @@ const createProject = async (req, res) => {
         message: "Start date and end date must be after the current date",
       });
     }
-    const response = await ProjectService.createProject(req.body);
+
+    // Gọi service để tạo dự án
+    const response = await ProjectService.createProject({
+      ...req.body,
+      startDate: start.toDate(), // Lưu vào DB với UTC
+      endDate: end.toDate(), // Lưu vào DB với UTC
+    });
+
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
@@ -163,7 +172,11 @@ const updateProject = async (req, res) => {
         message: "Start date and end date must be after the current date",
       });
     }
-    const response = await ProjectService.updateProject(projectId, req.body);
+    const response = await ProjectService.updateProject(projectId, {
+      ...req.body,
+      startDate: start.toISOString(), // Chuyển đổi về định dạng UTC
+      endDate: end.toISOString(), // Chuyển đổi về định dạng UTC
+    });
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
