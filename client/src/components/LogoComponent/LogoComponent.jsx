@@ -8,9 +8,6 @@ const LogoComponent = ({style}) => {
         <img src={logoImage} alt="GymMate Logo" className="logo-image" />
         <div className="logo-text">TaskFlow</div>
       </div>
-      {/* <div style={{fontSize: '20px'}}>
-        <MenuFoldOutlined />
-      </div> */}
     </div>
   );
 };

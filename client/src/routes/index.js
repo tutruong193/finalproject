@@ -1,7 +1,8 @@
 import AccountPage from "../pages/Admin/AccountPage/AccountPage";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import NotPoundPage from "../pages/NotFoundPage/NotPoundPage";
-import TaskPage from "../pages/UserPage/TaskPage/TaskPage";
+import ListPage from "../pages/UserPage/ListPage/ListPage";
+import BoardPage from "../pages/UserPage/BoardPage/BoardPage";
 import UserManagerProjectPage from "../pages/UserPage/UserManageProjectPage/UserManagerProjectPage";
 import UserNotificationPage from "../pages/UserPage/UserNotificationPage/UserNotificationPage";
 
@@ -14,22 +15,22 @@ export const routes = [
     requiresAuth: true,
   },
   {
-    path: "/system/user/manager",
+    path: "/system/user/your-work",
     page: UserManagerProjectPage,
+    isShowHeader: true,
+    requiresAuth: true,
+    isShowSider: false,
+  },
+  {
+    path: "/system/user/project/list",
+    page: ListPage,
     isShowHeader: true,
     requiresAuth: true,
     isShowSider: true,
   },
   {
-    path: "/system/user/project",
-    page: UserManagerProjectPage,
-    isShowHeader: true,
-    requiresAuth: true,
-    isShowSider: true,
-  },
-  {
-    path: "/system/user/manager/project", // Add this route
-    page: TaskPage,
+    path: "/system/user/project/board",
+    page: BoardPage,
     isShowHeader: true,
     requiresAuth: true,
     isShowSider: true,

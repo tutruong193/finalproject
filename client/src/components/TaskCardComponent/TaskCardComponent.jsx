@@ -26,8 +26,13 @@ import SubtaskComponent from "../SubtaskComponent/SubtaskComponent";
 import { jwtTranslate } from "../../ultilis";
 import { useCookies } from "react-cookie";
 import dayjs from "dayjs";
+import { useQueryClient } from "@tanstack/react-query";
+
+// Bên trong component
+
 const { TextArea } = Input;
 const TaskCardComponent = ({ task_id, taskQuery }) => {
+  const queryClient = useQueryClient();
   const [cookies, setCookie, removeCookie] = useCookies();
   const user = jwtTranslate(cookies.access_token);
   const tags = [
@@ -129,12 +134,18 @@ const TaskCardComponent = ({ task_id, taskQuery }) => {
   };
   //change status subtask
   const HandleChangeStatus = async () => {
-    const res = await TaskService.updateStatusTask(task_id, user.id);
-    if (res.status === "OK") {
-      Message.success();
-      taskQuery.refetch();
-    } else if (res.status === "ERR") {
-      Message.error(res.message);
+    try {
+      const res = await TaskService.updateStatusTask(task_id, user.id);
+      if (res.status === "OK") {
+        Message.success("Task status updated successfully!");
+        taskQuery.refetch(); // Refetch lại dữ liệu sau khi cập nhật
+        queryClient.invalidateQueries(["tasks"])
+      } else {
+        Message.error(res.message);
+      }
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      Message.error("An error occurred while updating the task status.");
     }
   };
   return (

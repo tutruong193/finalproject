@@ -93,7 +93,8 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
     },
   ];
   const handleCardClick = () => {
-    navigate(`/system/user/manager/project?projectId=${projectId}`);
+    navigate(`/system/user/project/board`);
+    localStorage.setItem("projectId", projectId);
   };
   // Hàm xử lý sự kiện Delete
   const handleDelete = async () => {

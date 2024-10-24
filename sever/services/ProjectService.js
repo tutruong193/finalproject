@@ -2,6 +2,7 @@ const Project = require("../models/ProjectModel");
 const User = require("../models/UserModel");
 const Task = require("../models/TaskModel");
 const moment = require("moment-timezone");
+const NotificationService = require("../services/NotificationService");
 const createProject = (data) => {
   return new Promise(async (resolve, reject) => {
     const {
@@ -55,6 +56,12 @@ const createProject = (data) => {
       });
       // Nếu tạo thành công, trả về kết quả
       if (createdProject) {
+        await NotificationService.createNotification(
+          managerID,
+          "project",
+          "Project create success",
+          managerID
+        );
         return resolve({
           status: "OK",
           message: "Project created successfully",

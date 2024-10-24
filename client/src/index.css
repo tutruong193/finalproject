@@ -23,10 +23,20 @@ h6 {
   font-weight: 500;
   font-family: Roboto, sans-serif;
   margin: 0;
+  padding: 0;
 }
 
 p {
   margin: 0;
+}
+
+.title-default {
+  color: #0065FF
+}
+
+.title-default:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* component */
@@ -43,13 +53,14 @@ p {
   background-color: white;
   top: 0;
   right: 0;
+  left: 0;
   z-index: 1000;
 }
 
-.container-avatar {
+.container-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
 }
 
 /*logo*/
@@ -59,7 +70,6 @@ p {
   justify-content: center;
   flex-wrap: nowrap;
   color: black;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 0px 20px
 }
 
@@ -240,7 +250,6 @@ p {
 }
 
 .ant-card:hover {
-  transform: translateY(-5px);
   /* Di chuyển thẻ lên trên khi hover */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   /* Thêm bóng mờ khi hover */
@@ -298,12 +307,18 @@ p {
 /*taskpage*/
 .task-page {
   min-height: 100vh;
-  margin: 30px;
+  margin: 25px;
+  margin-left: 40px;
 }
 
 .task-title {
-  font-size: 18px;
-  padding-bottom: 20px;
+}
+
+.task-title-link {
+  display: flex;
+  gap: 5px;
+  font-size: 15px;
+  padding-bottom: 5px
 }
 
 .filter-container {
@@ -333,12 +348,19 @@ p {
   background-color: #038edc;
 }
 
-.container_action {
+.task_container_action {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 12px 0px;
+  margin-bottom: 16px;
+  gap: 20px
 }
-
+.task_container_action_children {
+  display: flex;
+  align-items: center;
+  gap: 10px
+}
 .add-task-btn {
   color: #038edc;
   background-color: rgba(3, 142, 220, 0.1);
@@ -537,24 +559,25 @@ p {
 
 
 /*usermanagerprojectpage*/
-.container_action {
+.container-projects {
+  border-top: solid 1px #091e4221;
+  border-bottom: solid 1px #091e4221;
+  padding: 20px 0px
+}
+
+.container-title {
+  max-height: fit-content;
   display: flex;
-  flex-direction: row;
-  align-items: center;
   justify-content: space-between;
 }
 
-.container_action_right {
-  display: flex;
-  gap: 20px;
-}
-
-.container_all_projects {
-  margin-top: 1rem;
+.projects {
   margin-right: -15px;
+  margin-top: 20px;
+  margin-bottom: 10px;
 }
 
-.container_all_projects .ant-col {
+.projects .ant-col {
   padding-right: 0.75rem;
   padding-bottom: 0.75rem;
 }

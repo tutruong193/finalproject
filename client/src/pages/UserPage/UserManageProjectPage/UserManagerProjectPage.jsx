@@ -141,47 +141,52 @@ const UserManagerProjectPage = () => {
     }
   };
   return (
-    <div style={{ minHeight: "100vh", margin: "20px" }}>
-      <h2 style={{ fontSize: "18px", paddingBottom: "20px" }}>Projects</h2>
+    <div style={{ minHeight: "100vh", padding: "40px" }}>
+      <h2 style={{ fontSize: "25px", paddingBottom: "20px", fontWeight: 700 }}>
+        Your work
+      </h2>
       <div>
-        <div className="container_action">
-          {infoUser.role.includes("manager") && (
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
+        <div className="container-projects">
+          <div className="container-title">
+            <h2
               style={{
-                color: "#038edc",
-                backgroundColor: "rgba(3, 142, 220, .1)",
+                fontSize: "15px",
+                fontWeight: 600,
+                fontFamily: "Roboto, sans-serif",
               }}
-              onClick={showModalAddProject}
             >
-              Add project
-            </Button>
-          )}
-
-          <div className="container_action_right">
-            <Input placeholder="default size" prefix={<SearchOutlined />} />
-            <Button
-              type="primary"
-              icon={<FilterOutlined />}
-              style={{
-                color: "#038edc",
-                backgroundColor: "rgba(3, 142, 220, .1)",
-                padding: "0.5rem",
-              }}
-            />
+              Recent projects
+            </h2>
+            <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+              <div className="title-default" onClick={showModalAddProject}>
+                Create a new project
+              </div>
+              <div className="title-default">View all projects</div>
+            </div>
           </div>
+          <Row className="projects" gutter={[16, 16]}>
+            {dataProject?.map((project) => (
+              <Col key={project._id} span={4}>
+                <ProjectCardComponent
+                  projectId={project._id}
+                  projectQuerry={projectQuerry}
+                />
+              </Col>
+            ))}
+          </Row>
         </div>
-        <Row className="container_all_projects">
-          {dataProject?.map((project) => (
-            <Col key={project._id} span={6}>
-              <ProjectCardComponent
-                projectId={project._id}
-                projectQuerry={projectQuerry}
-              />
-            </Col>
-          ))}
-        </Row>
+        <div className="container-activity">
+          <h2
+            style={{
+              fontSize: "15px",
+              fontWeight: 600,
+              fontFamily: "Roboto, sans-serif",
+              padding: "20px 0px",
+            }}
+          >
+            Recent
+          </h2>
+        </div>
       </div>
       <Modal
         title="Add a new project"

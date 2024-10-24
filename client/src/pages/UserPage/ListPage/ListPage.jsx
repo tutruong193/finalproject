@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {
   SearchOutlined,
-  FilterOutlined,
   PlusOutlined,
+  FilterOutlined,
+  EllipsisOutlined,
 } from "@ant-design/icons";
 import {
   Input,
   Button,
-  Row,
-  Col,
   Radio,
   Modal,
   Form,
   DatePicker,
   Select,
+  Avatar,
 } from "antd";
 import TaskCardComponent from "../../../components/TaskCardComponent/TaskCardComponent";
 import { useLocation } from "react-router-dom";
@@ -21,7 +21,8 @@ import * as TaskService from "../../../services/TaskService";
 import * as ProjectService from "../../../services/ProjectService";
 import { useQuery } from "@tanstack/react-query";
 import * as Message from "../../../components/MessageComponent/MessageComponent";
-const TaskPage = () => {
+import TableListView from "../../../components/TableListView/TableListView";
+const ListPage = () => {
   //setup
   const [statusValue, setStatusValue] = useState("all"); // giá trị trạng thái đã chọn
   const [orderValue, setOrderValue] = useState("ascending"); // giá trị thứ tự đã chọn
@@ -94,12 +95,13 @@ const TaskPage = () => {
   const taskQuery = useQuery({
     queryKey: ["tasks"],
     queryFn: fetchTaskAll,
-    config: { retry: 3, retryDelay: 1000 },
+    staleTime: 0, // Đảm bảo dữ liệu luôn được coi là "stale" và cần refetch
+    cacheTime: 1000,
   });
   const { data: tasks } = taskQuery;
   const [stateProject, setStateProject] = useState([]);
   const location = useLocation();
-  const projectId = new URLSearchParams(location.search).get("projectId");
+  const projectId = localStorage.getItem("projectId");
   useEffect(() => {
     const fetchTaskDataAndMemberList = async () => {
       try {
@@ -170,10 +172,32 @@ const TaskPage = () => {
   };
   return (
     <div className="task-page">
-      <h2 className="task-title">Tasks List</h2>
-      <Row>
-        <Col span={5}>
-          <div className="filter-container">
+      <div className="task-title">
+        <div className="task-title-link">
+          <div className="title-default" style={{ color: "black" }}>
+            Project
+          </div>
+          <div className="title-default" style={{ color: "black" }}>
+            {" "}
+            /{" "}
+          </div>
+          <div className="title-default" style={{ color: "black" }}>
+            {" "}
+            ProjectName{" "}
+          </div>
+        </div>
+        <h2
+          style={{
+            fontSize: "25px",
+            fontWeight: 600,
+            fontFamily: "Roboto, sans-serif",
+          }}
+        >
+          List
+        </h2>
+      </div>
+
+      {/* <div className="filter-container">
             <div className="filter-section">
               <h4 className="filter-title">Status</h4>
               <Radio.Group onChange={handleStatusChange} value={statusValue}>
@@ -201,43 +225,58 @@ const TaskPage = () => {
             >
               Áp dụng
             </Button>
-          </div>
-        </Col>
-        <Col span={19}>
-          <div>
-            <div className="container_action">
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                className="add-task-btn"
-                onClick={showModal}
-              >
-                Add Task
-              </Button>
-              <div className="container_action_right">
-                <Input placeholder="default size" prefix={<SearchOutlined />} />
-                <Button
-                  type="primary"
-                  icon={<FilterOutlined />}
-                  className="filter-btn"
-                  style={{ display: "none" }}
-                />
-              </div>
-            </div>
-            <div className="task-card-container">
-              {
-                // Kiểm tra nếu taskQuery.data là mảng
-                tasks?.data.map((task) => (
-                  <TaskCardComponent
-                    task_id={task._id}
-                    taskQuery={taskQuery}
-                  />
-                ))
-              }
-            </div>
-          </div>
-        </Col>
-      </Row>
+          </div> */}
+      <div className="task_container_action">
+        <div className="task_container_action_children">
+          <Input
+            placeholder="default size"
+            prefix={<SearchOutlined />}
+            style={{ width: "200px", border: "1px solid" }}
+          />
+          <Avatar.Group
+            max={{
+              count: 2,
+              style: {
+                color: "#f56a00",
+                backgroundColor: "#fde3cf",
+              },
+            }}
+          >
+            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
+            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
+            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
+            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
+          </Avatar.Group>
+          <Avatar icon={<PlusOutlined />} />
+        </div>
+
+        <div className="task_container_action_children">
+          <Button  icon={<FilterOutlined />}>
+            Filter
+          </Button>
+          <Button  icon={<EllipsisOutlined />}>
+            More
+          </Button>
+        </div>
+        {/* <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          className="add-task-btn"
+          onClick={showModal}
+        >
+          Add Task
+        </Button> */}
+      </div>
+      <div className="task-card-container">
+        {
+          // Kiểm tra nếu taskQuery.data là mảng
+          tasks?.data.map((task) => (
+            <TaskCardComponent task_id={task._id} taskQuery={taskQuery} />
+          ))
+        }
+        <TableListView projectId={projectId}/>
+      </div>
+
       <Modal
         title="Add New Task"
         open={isModalVisible}
@@ -307,4 +346,4 @@ const TaskPage = () => {
   );
 };
 
-export default TaskPage;
+export default ListPage;

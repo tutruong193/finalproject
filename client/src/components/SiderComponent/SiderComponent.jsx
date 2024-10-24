@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { Layout, Menu } from "antd";
-import LogoComponent from "../LogoComponent/LogoComponent";
-import { BellOutlined, SearchOutlined, UserOutlined } from "@ant-design/icons";
+
+import {
+  BellOutlined,
+  SearchOutlined,
+  UserOutlined,
+  TableOutlined,
+  UnorderedListOutlined,
+} from "@ant-design/icons";
 import { useCookies } from "react-cookie";
 import { jwtTranslate } from "../../ultilis";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +20,7 @@ const SiderComponent = () => {
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
   const isManager = infoUser?.role?.includes("manager");
   const isAdmin = infoUser?.role?.includes("admin");
-  const defaultSelectedKey = isAdmin ? "admin_account" : "user_project";
+  const defaultSelectedKey = isAdmin ? "admin_account" : "user_project_board";
 
   // Xác định menu items dựa trên vai trò của người dùng
   const items = isAdmin
@@ -37,9 +43,20 @@ const SiderComponent = () => {
       ]
     : [
         {
-          key: "user_project",
           icon: <SearchOutlined />,
           label: isManager ? "Manage Project" : "Project",
+          children: [
+            {
+              key: "user_project_board",
+              label: "Board",
+              icon: <TableOutlined />,
+            },
+            {
+              key: "user_project_list",
+              label: "List",
+              icon: <UnorderedListOutlined />,
+            },
+          ],
         },
 
         {
@@ -60,11 +77,14 @@ const SiderComponent = () => {
       case "admin_notification":
         navigate("/system/admin/notification");
         break;
-      case "user_project":
-        navigate("/system/user/manager");
-        break;
       case "user_notification":
         navigate("/system/user/notification");
+        break;
+      case "user_project_board":
+        navigate("/system/user/project/board");
+        break;
+      case "user_project_list":
+        navigate("/system/user/project/list");
         break;
       default:
         break;
@@ -73,7 +93,7 @@ const SiderComponent = () => {
 
   return (
     <Sider width="17%" className="container-sider" collapsed={false}>
-      <LogoComponent />
+      <div style={{ height: "70px" }}></div>
       <Menu
         defaultSelectedKeys={defaultSelectedKey}
         mode="inline"

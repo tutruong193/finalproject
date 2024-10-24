@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { MenuUnfoldOutlined, UserOutlined } from "@ant-design/icons";
-import { Avatar, Button } from "antd";
+import {
+  MenuUnfoldOutlined,
+  UserOutlined,
+  SearchOutlined,
+  BellOutlined,
+} from "@ant-design/icons";
+import { Avatar, Button, Input } from "antd";
 import { useCookies } from "react-cookie";
 import { jwtTranslate } from "../../ultilis";
 import * as UserService from "../../services/UserService";
 import { Popover } from "antd";
 import { useNavigate } from "react-router-dom";
+import LogoComponent from "../LogoComponent/LogoComponent";
 const HeaderComponent = () => {
   const [cookiesAccessToken, setCookieAccessToken] = useCookies("");
   const accessToken = cookiesAccessToken.access_token;
@@ -79,29 +85,23 @@ const HeaderComponent = () => {
   );
   return (
     <div className="container-header">
-      <div style={{ fontSize: "20px" }}>
-        <MenuUnfoldOutlined />
-      </div>
-      <Popover
-        placement="bottomRight"
-        trigger={"hover"}
-        title={`Welcome, ${stateUser?.name}!`}
-        content={content}
-      >
-        <div className="container-avatar">
-          <div>
-            <Avatar icon={<UserOutlined />} size={35} />
-          </div>
-          <div>
-            <div style={{ fontWeight: 500 }}>Welcome, {stateUser?.name}</div>
-            {stateUser?.role.length > 0 && (
-              <div style={{ fontSize: "11px" }}>
-                {stateUser.role.join(", ")}
-              </div>
-            )}
-          </div>
+      <LogoComponent />
+      <div className="container-header-right">
+        <Input placeholder="default size" prefix={<SearchOutlined />} />
+        <div className="header-icon">
+          <BellOutlined style={{ fontSize: "20px" }} />
         </div>
-      </Popover>
+        <Popover
+          placement="bottomRight"
+          trigger={"hover"}
+          title={`Welcome, ${stateUser?.name}!`}
+          content={content}
+        >
+          <div className="header-icon">
+            <Avatar icon={<UserOutlined />} size={30} />
+          </div>
+        </Popover>
+      </div>
     </div>
   );
 };

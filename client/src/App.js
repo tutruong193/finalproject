@@ -24,6 +24,7 @@ function App() {
       removeCookie("access_token");
     }
   }, [window.location.pathname]);
+
   return (
     <div className="App">
       <Router>
@@ -35,23 +36,22 @@ function App() {
               element={
                 route.requiresAuth && !accessToken ? (
                   <Navigate to="/404" replace />
-                ) : route.path === "/login" ? ( // Kiểm tra xem có phải trang login không
+                ) : route.path === "/login" ? (
                   <Fragment>
-                    <route.page /> {/* Render trực tiếp trang login */}
+                    <route.page />
                   </Fragment>
                 ) : (
                   <Fragment>
-                    {route.isShowHeader && (
-                      <DefaultComponent
-                        style={
-                          isSystemPage
-                            ? { marginLeft: "17%", marginTop: "60px" }
-                            : {}
-                        }
-                      >
-                        <route.page />
-                      </DefaultComponent>
-                    )}
+                    <DefaultComponent
+                      style={{
+                        marginLeft: route.isShowSider ? "17%" : "0", 
+                        marginTop: route.isShowHeader ? "60px" : "0", 
+                      }}
+                      showHeader={route.isShowHeader}
+                      showSider={route.isShowSider}
+                    >
+                      <route.page />
+                    </DefaultComponent>
                   </Fragment>
                 )
               }
