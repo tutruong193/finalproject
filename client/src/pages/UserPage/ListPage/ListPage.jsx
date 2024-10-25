@@ -251,10 +251,17 @@ const ListPage = () => {
         </div>
 
         <div className="task_container_action_children">
-          <Button  icon={<FilterOutlined />}>
+          <Button
+            icon={<PlusOutlined />}
+            className="action_button"
+            onClick={showModal}
+          >
+            Add
+          </Button>
+          <Button icon={<FilterOutlined />} className="action_button">
             Filter
           </Button>
-          <Button  icon={<EllipsisOutlined />}>
+          <Button icon={<EllipsisOutlined />} className="action_button">
             More
           </Button>
         </div>
@@ -268,13 +275,7 @@ const ListPage = () => {
         </Button> */}
       </div>
       <div className="task-card-container">
-        {
-          // Kiểm tra nếu taskQuery.data là mảng
-          tasks?.data.map((task) => (
-            <TaskCardComponent task_id={task._id} taskQuery={taskQuery} />
-          ))
-        }
-        <TableListView projectId={projectId}/>
+        <TableListView data={tasks?.data || []} />
       </div>
 
       <Modal

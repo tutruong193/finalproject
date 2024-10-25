@@ -46,6 +46,7 @@ function App() {
                       style={{
                         marginLeft: route.isShowSider ? "17%" : "0", 
                         marginTop: route.isShowHeader ? "60px" : "0", 
+                        backgroundColor: "white"
                       }}
                       showHeader={route.isShowHeader}
                       showSider={route.isShowSider}

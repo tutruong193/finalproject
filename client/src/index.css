@@ -2,6 +2,7 @@ body {
   margin: 0;
   box-sizing: border-box;
   padding: 0;
+  background-color: white !important;
 }
 
 code {
@@ -311,8 +312,7 @@ p {
   margin-left: 40px;
 }
 
-.task-title {
-}
+.task-title {}
 
 .task-title-link {
   display: flex;
@@ -356,23 +356,147 @@ p {
   margin-bottom: 16px;
   gap: 20px
 }
+
 .task_container_action_children {
   display: flex;
   align-items: center;
   gap: 10px
 }
-.add-task-btn {
-  color: #038edc;
-  background-color: rgba(3, 142, 220, 0.1);
+.action_button{
+  border: none !important;
+  width: 100px;
+}
+.action_button:hover{
+  background-color: #091E420F !important;
+  color: black !important;
+}
+/* tablelist, phần model */
+.task-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.filter-btn {
-  color: #038edc;
-  background-color: rgba(3, 142, 220, 0.1);
-  padding: 0.5rem;
+.task-modal .modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.task-card-container {
+.task-modal .modal-content {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+}
+
+.task-modal .main-content {
+  flex: 1;
+}
+
+.task-modal .sidebar {
+  width: 300px;
+}
+
+.task-modal .field-group {
+  margin-bottom: 16px;
+}
+
+.task-modal .field-label {
+  color: #6B778C;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.task-modal .field-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-modal .quick-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.task-modal .quick-action-btn {
+  border: 1px solid #e8e8e8;
+  padding: 4px 12px;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.task-modal .quick-action-btn:hover {
+  background: #f5f5f5;
+}
+
+.task-modal .action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.task-modal .action-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  color: #42526E;
+}
+
+.task-modal .action-button:hover {
+  background: #f5f5f5;
+}
+/*status của cái trạng thái*/
+
+/* Kiểu dáng chung cho Select */
+/* Chuyển đổi mượt mà cho tất cả trạng thái */
+.ant-select-selector {
+  transition: all 0.3s ease;
+}
+
+/* Màu nền cho từng trạng thái */
+.status-select.progress .ant-select-selector {
+  background-color: #1890ff !important; /* Màu xanh cho "progress" */
+}
+
+.status-select.completed .ant-select-selector {
+  background-color: #52c41a !important; /* Màu xanh lá cho "completed" */
+}
+
+.status-select.pending .ant-select-selector {
+  background-color: #faad14 !important; /* Màu vàng cho "pending" */
+}
+
+
+/* Màu sắc tùy chỉnh cho từng trạng thái */
+/* .select-label.progress, .status-select.progress {
+  color: #fff;
+  background-color: #1890ff; 
+
+.select-label.completed, .status-select.completed {
+  color: #fff;
+  background-color: #52c41a; 
+}
+
+.select-label.pending, .status-select.pending {
+  color: #fff;
+  background-color: #faad14; 
+} */
+
+/* .task-card-container {
   display: flex;
   justify-content: center;
   margin-top: 1rem;
@@ -382,7 +506,7 @@ p {
   gap: 20px;
 }
 
-/* Phần thông tin Task */
+
 .task-details {
   margin-bottom: 20px;
 }
@@ -404,8 +528,7 @@ p {
   color: #333;
 }
 
-/* Phần danh sách người thực hiện */
-/* Phần danh sách người thực hiện */
+
 .task-assignees {
   padding-left: 0;
   margin-top: 10px;
@@ -424,14 +547,14 @@ p {
   border-radius: 8px;
   border: 1px solid #e0e0e0;
   width: 100%;
-  /* Đảm bảo mỗi dòng chiếm toàn bộ chiều ngang */
+
 }
 
 .assignee-name {
   flex-grow: 1;
   font-weight: 500;
   text-align: left;
-  /* Căn trái tên */
+
 }
 
 .status-icon {
@@ -455,17 +578,17 @@ p {
   background-color: rgba(243, 78, 78, 0.1);
 }
 
-/* Avatar người thực hiện */
+
 .ant-avatar {
   border: 2px solid #d9d9d9;
 }
 
-/* Avatar người thực hiện */
+
 .ant-avatar {
   border: 2px solid #d9d9d9;
 }
 
-/* Phần bình luận */
+
 .comment-section {
   margin-top: 30px;
 }
@@ -477,7 +600,7 @@ p {
 }
 
 
-/* Nút gửi bình luận */
+
 .comment-input button {
   width: 100%;
   margin-top: 15px;
@@ -501,15 +624,12 @@ p {
   transform: scale(1);
 }
 
-
-/* Danh sách bình luận */
 .comment-list {
   margin-top: 20px;
   padding-left: 0;
   list-style-type: none;
 }
 
-/* Phần từng bình luận riêng lẻ */
 .comment-item {
   display: flex;
   align-items: flex-start;
@@ -521,7 +641,6 @@ p {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Phần avatar người bình luận */
 .comment-item .avatar {
   margin-right: 15px;
 }
@@ -533,7 +652,6 @@ p {
   object-fit: cover;
 }
 
-/* Phần nội dung bình luận */
 .comment-content {
   flex-grow: 1;
 }
@@ -555,7 +673,7 @@ p {
   font-size: 14px;
   line-height: 1.6;
   color: #555;
-}
+} */
 
 
 /*usermanagerprojectpage*/
