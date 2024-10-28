@@ -265,14 +265,6 @@ const ListPage = () => {
             More
           </Button>
         </div>
-        {/* <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          className="add-task-btn"
-          onClick={showModal}
-        >
-          Add Task
-        </Button> */}
       </div>
       <div className="task-card-container">
         <TableListView data={tasks?.data || []} />

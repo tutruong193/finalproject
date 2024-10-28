@@ -74,6 +74,8 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       }
     };
     fetchProjectAndUsers();
+    localStorage.removeItem("manage_project_info");
+    localStorage.removeItem("projectId");
   }, [projectId]);
   const tags = [
     {
@@ -92,9 +94,15 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       backgroundColor: "rgba(81, 210, 140, .1)",
     },
   ];
-  const handleCardClick = () => {
+  const fetchUserData = async (id) => {
+    const res = await UserService.getDetailsUser(id);
+    return res.data;
+  };
+  const handleCardClick = async () => {
     navigate(`/system/user/project/board`);
     localStorage.setItem("projectId", projectId);
+    const managerInfo = await fetchUserData(stateProject.managerID);
+    localStorage.setItem("manage_project_info", JSON.stringify(managerInfo));
   };
   // Hàm xử lý sự kiện Delete
   const handleDelete = async () => {

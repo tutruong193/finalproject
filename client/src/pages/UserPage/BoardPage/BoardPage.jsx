@@ -1,121 +1,117 @@
-import React, { useState } from "react";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import React, { useState, useEffect } from "react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { Typography } from "antd";
 import * as TaskService from "../../../services/TaskService";
-import { useQuery } from "@tanstack/react-query";
-import * as Message from "../../../components/MessageComponent/MessageComponent";
-const tasks = [
-  { id: "1", content: "First task" },
-  { id: "2", content: "Second task" },
-  { id: "3", content: "Third task" },
-  { id: "4", content: "Fourth task" },
-  { id: "5", content: "Fifth task" },
-];
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-const taskStatus = {
-  requested: {
-    name: "Requested",
-    items: tasks,
-  },
-  toDo: {
-    name: "To do",
-    items: [],
-  },
-  inProgress: {
-    name: "In Progress",
-    items: [],
-  },
-  done: {
-    name: "Done",
-    items: [],
-  },
-};
-
-const onDragEnd = (result, columns, setColumns) => {
-  if (!result.destination) return;
-  const { source, destination } = result;
-
-  const sourceColumn = columns[source.droppableId];
-  const destColumn = columns[destination.droppableId];
-  const sourceItems = [...sourceColumn.items];
-  const destItems =
-    destination.droppableId === source.droppableId
-      ? sourceItems
-      : [...destColumn.items];
-
-  const [removed] = sourceItems.splice(source.index, 1);
-  if (destination.droppableId !== source.droppableId) {
-    destItems.splice(destination.index, 0, removed);
-  } else {
-    sourceItems.splice(destination.index, 0, removed);
-  }
-
-  setColumns({
-    ...columns,
-    [source.droppableId]: {
-      ...sourceColumn,
-      items: sourceItems,
-    },
-    [destination.droppableId]: {
-      ...destColumn,
-      items: destItems,
-    },
-  });
-};
+dayjs.extend(relativeTime);
 
 const BoardPage = () => {
   const projectId = localStorage.getItem("projectId");
-  const [columns, setColumns] = useState(taskStatus);
-  const fetchTaskAll = async () => {
-    const res = await TaskService.getAllTask(projectId);
-    return res;
-  };
-  const taskQuery = useQuery({
-    queryKey: ["tasks"],
-    queryFn: fetchTaskAll,
-    staleTime: 0, // Đảm bảo dữ liệu luôn được coi là "stale" và cần refetch
-    cacheTime: 1000,
+  const [columns, setColumns] = useState({
+    pending: { name: "To Do", items: [] },
+    progress: { name: "In Progress", items: [] },
+    completed: { name: "Done", items: [] },
   });
-  const { data: tasks } = taskQuery;
+
+  const fetchTasks = async () => {
+    try {
+      const res = await TaskService.getAllTask(projectId);
+      if (res.status === "OK") {
+        const taskData = res.data;
+        const newColumns = {
+          pending: {
+            name: "To Do",
+            items: taskData.filter((task) => task.status === "pending"),
+          },
+          progress: {
+            name: "In Progress",
+            items: taskData.filter((task) => task.status === "progress"),
+          },
+          completed: {
+            name: "Done",
+            items: taskData.filter((task) => task.status === "completed"),
+          },
+        };
+        setColumns(newColumns);
+      } else {
+        console.error("Failed to fetch tasks:", res.message);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const { source, destination } = result;
+
+    const sourceColumn = columns[source.droppableId];
+    const destColumn = columns[destination.droppableId];
+    const sourceItems = Array.from(sourceColumn.items);
+    const destItems = Array.from(destColumn.items);
+    const [movedItem] = sourceItems.splice(source.index, 1);
+
+    // Cập nhật trạng thái cho mục di chuyển
+    movedItem.status = destination.droppableId;
+
+    if (source.droppableId !== destination.droppableId) {
+      // Kéo từ cột này sang cột khác
+      destItems.splice(destination.index, 0, movedItem);
+    } else {
+      // Kéo trong cùng một cột
+      sourceItems.splice(destination.index, 0, movedItem);
+    }
+
+    setColumns({
+      ...columns,
+      [source.droppableId]: {
+        ...sourceColumn,
+        items: sourceItems,
+      },
+      [destination.droppableId]: {
+        ...destColumn,
+        items: destItems,
+      },
+    });
+  };
+
   return (
     <div>
-      <h1 style={{ textAlign: "center" }}>Jira Board</h1>
-      <div
-        style={{ display: "flex", justifyContent: "center", height: "100%" }}
-      >
-        <DragDropContext
-          onDragEnd={(result) => onDragEnd(result, columns, setColumns)}
-        >
+      <Typography.Title style={{ textAlign: "center" }}>Jira Board</Typography.Title>
+      <div style={{ display: "flex", justifyContent: "center", height: "100%" }}>
+        <DragDropContext onDragEnd={onDragEnd}>
           {Object.entries(columns).map(([columnId, column]) => (
             <div
+              key={columnId}
               style={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                marginRight: "10px", // Add some space between columns
+                margin: "0 8px",
               }}
-              key={columnId}
             >
-              <h2>{column.name}</h2>
+              <Typography.Title level={5}>{column.name}</Typography.Title>
               <Droppable droppableId={columnId}>
                 {(provided, snapshot) => (
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
                     style={{
-                      background: snapshot.isDraggingOver
-                        ? "lightblue"
-                        : "lightgrey",
+                      background: snapshot.isDraggingOver ? "lightblue" : "lightgrey",
                       padding: 4,
                       width: 250,
                       minHeight: 500,
                     }}
                   >
                     {column.items.map((item, index) => (
-                      <Draggable
-                        key={item.id}
-                        draggableId={item.id}
-                        index={index}
-                      >
+                      <Draggable key={item._id} draggableId={item._id} index={index}>
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
@@ -126,14 +122,12 @@ const BoardPage = () => {
                               padding: 16,
                               margin: "0 0 8px 0",
                               minHeight: "50px",
-                              backgroundColor: snapshot.isDragging
-                                ? "#263B4A"
-                                : "#456C86",
+                              backgroundColor: snapshot.isDragging ? "#263B4A" : "#456C86",
                               color: "white",
                               ...provided.draggableProps.style,
                             }}
                           >
-                            {item.content}
+                            {item.name}
                           </div>
                         )}
                       </Draggable>

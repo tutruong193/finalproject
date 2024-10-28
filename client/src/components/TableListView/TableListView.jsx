@@ -18,6 +18,9 @@ import {
   LinkOutlined,
   EllipsisOutlined,
 } from "@ant-design/icons";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 // Thay đổi mảng columns để phù hợp với dữ liệu mới
 const dateFormatOptions = {
   day: "2-digit",
@@ -71,14 +74,6 @@ const TableListView = ({ data }) => {
       dataIndex: "name",
       key: "name",
       width: 350,
-      render: (text, record) => (
-        <span
-          style={{ cursor: "pointer", color: "#1890ff", lineHeight: "20px" }}
-          onClick={() => showModal(record)}
-        >
-          {text}
-        </span>
-      ),
     },
     {
       title: "Type",
@@ -182,76 +177,63 @@ const TableListView = ({ data }) => {
   ];
   const formatTaskData = (data) => {
     return data.map((task) => {
-      if (!task.children && task.subtasks && task.subtasks.length > 0) {
-        return {
-          ...task,
-          type: "task",
-          key: task._id,
-          children: task.subtasks.map((subtask) => ({
-            ...subtask,
-            type: "subtask",
-            key: subtask._id, // Ensure each subtask has a unique key
-          })),
-        };
+      const formattedTask = {
+        ...task,
+        type: "task",
+        key: task._id,
+      };
+
+      // Chỉ thêm thuộc tính `children` nếu có `subtasks`
+      if (task.subtasks && task.subtasks.length > 0) {
+        formattedTask.children = task.subtasks.map((subtask) => ({
+          ...subtask,
+          type: "subtask",
+          key: subtask._id, // Ensure each subtask has a unique key
+        }));
       }
-      return { ...task, key: task._id };
+
+      return formattedTask;
     });
   };
+
   const formattedTasks = data ? formatTaskData(data) : [];
-  const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log(
-        `selectedRowKeys: ${selectedRowKeys}`,
-        "selectedRows: ",
-        selectedRows
-      );
-    },
-    onSelect: (record, selected, selectedRows) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected, selectedRows, changeRows) => {
-      console.log(selected, selectedRows, changeRows);
-    },
-  };
   // Modal for task information
   const [isModalTaskInformation, setIsModalTaskInformation] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
-  const showModal = (record) => {
-    setSelectedTask(record);
+  const fetchTaskData = async (id) => {
+    const res = await TaskService.getDetailTask(id);
+    if (res.status === "OK") {
+      setSelectedTask(res.data);
+    } else {
+      setSelectedTask(null);
+    }
+  };
+  const showModal = async (key) => {
+    await fetchTaskData(key);
     setIsModalTaskInformation(true);
   };
-  console.log(selectedTask?.status);
   const handleCancelTaskInformation = () => {
+    setSelectedTask(null);
     setIsModalTaskInformation(false);
-    setSelectedTask(null);
-    setSelectedTask(null);
   };
-  //fetch task data
-  // const [stateTask, setStateTask] = useState({ subtasks: [] });
-  // const fetchTaskData = async () => {
-  //   try {
-  //     const taskRes = await TaskService.getDetailTask(task_id);
-  //     if (taskRes.status === "OK") {
-  //       setStateTask(taskRes.data);
-  //     } else {
-  //       console.error("Error fetching task details");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching data:", error);
-  //   }
-  // };
-  // useEffect(() => {
-  //   fetchTaskData();
-  // }, [task_id]);
+  console.log();
   return (
     <>
       <Table
         bordered
         columns={columns}
-        rowSelection={rowSelection}
+        rowSelection={{
+          onChange: (selectedRowKeys, selectedRows) => {},
+          onSelectAll: (selectedRowKeys, selectedRows) => {},
+          onSelect: (selectedRowKeys, selectedRows) => {},
+        }}
+        onRow={(record) => ({
+          onClick: () => showModal(record.key), // Mở modal khi click vào hàng
+        })}
         dataSource={formattedTasks}
         virtual
         scroll
+        size={"small"}
         pagination={false}
       />
       <Modal
@@ -269,7 +251,7 @@ const TableListView = ({ data }) => {
           </div>
           <div className="modal-actions">
             <Select
-              value={selectedTask?.status}
+              defaultValue={selectedTask?.status}
               style={{
                 width: 120,
               }}
@@ -277,15 +259,15 @@ const TableListView = ({ data }) => {
               options={[
                 {
                   value: "progress",
-                  label: "progress",
+                  label: "Progress",
                 },
                 {
                   value: "completed",
-                  label: "completed",
+                  label: "Completed",
                 },
                 {
                   value: "pending",
-                  label: "pending",
+                  label: "Pending",
                 },
               ]}
             />
@@ -375,10 +357,11 @@ const TableListView = ({ data }) => {
                           ))}
                         </Avatar.Group>
                         <Select
-                          value={selectedTask?.status}
+                          defaultValue={subtask?.status}
                           style={{
                             width: 120,
                           }}
+                          className={`status-select ${subtask?.status}`}
                           options={[
                             {
                               value: "progress",
@@ -464,42 +447,67 @@ const TableListView = ({ data }) => {
             <div className="field-group">
               <div className="field-label">Assignee</div>
               <div className="field-value">
-                <Avatar size="small">U</Avatar>
-                <span>Unassigned</span>
+                {selectedTask?.assignees ? (
+                  <Avatar.Group count={2}>
+                    {selectedTask.assignees.map((assignee) => (
+                      <Avatar
+                        style={{
+                          backgroundColor: "#87d068",
+                          cursor: "pointer",
+                        }}
+                        key={assignee.userId}
+                        alt={assignee.name}
+                        title={assignee.name}
+                      >
+                        {assignee.name.charAt(0).toUpperCase()}
+                      </Avatar>
+                    ))}
+                  </Avatar.Group>
+                ) : (
+                  <>
+                    <Avatar size="small">U</Avatar>
+                    <span>Unassigned</span>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="field-group">
-              <div className="field-label">Labels</div>
-              <div className="field-value">None</div>
+              <div className="field-label">Priority</div>
+              <div className="field-value">{selectedTask?.priority}</div>
             </div>
 
             <div className="field-group">
-              <div className="field-label">Parent</div>
-              <div className="field-value">None</div>
-            </div>
-
-            <div className="field-group">
-              <div className="field-label">Team</div>
-              <div className="field-value">None</div>
+              <div className="field-label">Due Date</div>
+              <div className="field-value">
+                {renderDate(selectedTask?.dueDate)}
+              </div>
             </div>
 
             <div className="field-group">
               <div className="field-label">Reporter</div>
               <div className="field-value">
                 <Avatar size="small" style={{ backgroundColor: "#1890ff" }}>
-                  T
+                  {JSON.parse(localStorage.getItem("manage_project_info"))
+                    ?.name.charAt(0)
+                    .toUpperCase()}
                 </Avatar>
-                <span>Truong Anh Tu (FGW HN)</span>
+                <span>
+                  {
+                    JSON.parse(localStorage.getItem("manage_project_info"))
+                      ?.name
+                  }
+                </span>
               </div>
             </div>
 
             <div
               style={{ fontSize: "12px", color: "#6B778C", marginTop: "24px" }}
             >
-              <div>Created 2 days ago</div>
-              <div>Updated 2 days ago</div>
-              <div>Resolved 2 days ago</div>
+              <div>Created {dayjs(selectedTask?.createdAt).fromNow()}</div>
+              <div>Updated {dayjs(selectedTask?.updatedAt).fromNow()}</div>
+              <div>Resolved {dayjs().fromNow()}</div>{" "}
+              {/* Hoặc ngày khác tùy bạn */}
             </div>
           </div>
         </div>

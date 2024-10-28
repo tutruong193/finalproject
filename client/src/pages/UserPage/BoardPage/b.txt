@@ -1,0 +1,232 @@
+import React, { useState, useEffect } from "react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { Select, Typography, Tooltip } from "antd";
+import * as TaskService from "../../../services/TaskService";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
+
+const renderDate = (date) => {
+  const parsedDate = new Date(date);
+  return isNaN(parsedDate) ? "Invalid Date" : dayjs(parsedDate).fromNow();
+};
+
+const BoardPage = () => {
+  const projectId = localStorage.getItem("projectId");
+  const [columns, setColumns] = useState({
+    pending: { name: "To Do", items: [] },
+    progress: { name: "In Progress", items: [] },
+    completed: { name: "Done", items: [] },
+  });
+
+  const fetchTasks = async () => {
+    try {
+      // Added try-catch
+      const res = await TaskService.getAllTask(projectId);
+      if (res.status === "OK") {
+        const taskData = res.data;
+        console.log("Task data:", taskData); // Added debug log
+        const newColumns = {
+          pending: {
+            name: "To Do",
+            items: taskData.filter((task) => task.status === "pending"),
+          },
+          progress: {
+            name: "In Progress",
+            items: taskData.filter((task) => task.status === "progress"),
+          },
+          completed: {
+            name: "Done",
+            items: taskData.filter((task) => task.status === "completed"),
+          },
+        };
+        setColumns(newColumns);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const onDragEnd = async (result) => {
+    if (!result.destination) return;
+
+    const { source, destination } = result;
+
+    // Added validation for same position
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
+
+    const sourceColumn = columns[source.droppableId];
+    const destColumn = columns[destination.droppableId];
+
+    if (!sourceColumn || !destColumn) {
+      console.error(
+        "Invalid droppable ID:",
+        source.droppableId,
+        destination.droppableId
+      );
+      return;
+    }
+
+    const sourceItems = Array.from(sourceColumn.items); // Changed from spread to Array.from
+    const destItems = Array.from(destColumn.items);
+    const [movedItem] = sourceItems.splice(source.index, 1);
+
+    // Update the item's status to match the new column
+    const updatedItem = {
+      ...movedItem,
+      status: destination.droppableId,
+    };
+
+    destItems.splice(destination.index, 0, updatedItem);
+
+    const newColumns = {
+      ...columns,
+      [source.droppableId]: {
+        ...sourceColumn,
+        items: sourceItems,
+      },
+      [destination.droppableId]: {
+        ...destColumn,
+        items: destItems,
+      },
+    };
+
+    // Optimistically update the UI
+    setColumns(newColumns);
+
+    try {
+      // Here you would update the backend
+      // await TaskService.updateTaskStatus(movedItem._id, destination.droppableId);
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      setColumns(columns); // Revert on error
+    }
+  };
+
+  const handleStatusChange = async (taskId, newStatus) => {
+    let task = null;
+    let sourceColumnId = null;
+
+    Object.entries(columns).forEach(([columnId, column]) => {
+      const foundTask = column.items.find((item) => item._id === taskId);
+      if (foundTask) {
+        task = foundTask;
+        sourceColumnId = columnId;
+      }
+    });
+
+    if (!task || !sourceColumnId) return;
+
+    const newColumns = JSON.parse(JSON.stringify(columns));
+
+    newColumns[sourceColumnId].items = newColumns[sourceColumnId].items.filter(
+      (item) => item._id !== taskId
+    );
+
+    const updatedTask = { ...task, status: newStatus };
+    newColumns[newStatus].items.push(updatedTask);
+
+    setColumns(newColumns);
+
+    try {
+      // Here you would update the backend
+      // await TaskService.updateTaskStatus(taskId, newStatus);
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      setColumns(columns);
+    }
+  };
+  return (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div style={{ display: "flex", gap: "20px" }}>
+        {Object.entries(columns).map(([columnId, column]) => (
+          <div key={columnId} style={{ margin: "8px", backgroundColor: "red" }}>
+            <Typography.Title level={5}>{column.name}</Typography.Title>
+            <Droppable droppableId={columnId}>
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  style={{
+                    backgroundColor: "#f0f2f5",
+                    padding: "8px",
+                    width: 300,
+                    minHeight: 400,
+                    borderRadius: "8px",
+                  }}
+                >
+                  {column.items.map((item, index) => (
+                    <Draggable
+                      key={item._id}
+                      draggableId={item._id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          style={{
+                            ...provided.draggableProps.style,
+                            padding: "12px",
+                            margin: "0 0 8px 0",
+                            backgroundColor: "#fff",
+                            borderRadius: "8px",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                          }}
+                        >
+                          <div>
+                            <Typography.Text strong>
+                              {item.name}
+                            </Typography.Text>
+                          </div>
+                          <div>
+                            <Typography.Text type="secondary">
+                              {item.description || "No description"}
+                            </Typography.Text>
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "8px",
+                              alignItems: "center",
+                            }}
+                          >
+                            {/* <Select
+                              defaultValue={item.status}
+                              style={{ width: 120 }}
+                              options={[
+                                { value: "pending", label: "Pending" },
+                                { value: "progress", label: "In Progress" },
+                                { value: "completed", label: "Completed" },
+                              ]}
+                            /> */}
+                            <Tooltip title={renderDate(item.dueDate)}>
+                              <span>{renderDate(item.dueDate)}</span>
+                            </Tooltip>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
+        ))}
+      </div>
+    </DragDropContext>
+  );
+};
+
+export default BoardPage;

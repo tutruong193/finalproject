@@ -362,14 +362,17 @@ p {
   align-items: center;
   gap: 10px
 }
-.action_button{
+
+.action_button {
   border: none !important;
   width: 100px;
 }
-.action_button:hover{
+
+.action_button:hover {
   background-color: #091E420F !important;
   color: black !important;
 }
+
 /* tablelist, phần model */
 .task-modal .modal-header {
   display: flex;
@@ -459,6 +462,7 @@ p {
 .task-modal .action-button:hover {
   background: #f5f5f5;
 }
+
 /*status của cái trạng thái*/
 
 /* Kiểu dáng chung cho Select */
@@ -469,15 +473,18 @@ p {
 
 /* Màu nền cho từng trạng thái */
 .status-select.progress .ant-select-selector {
-  background-color: #1890ff !important; /* Màu xanh cho "progress" */
+  color: #f7cc53;
+  background-color: rgba(247, 204, 83, .1);
 }
 
 .status-select.completed .ant-select-selector {
-  background-color: #52c41a !important; /* Màu xanh lá cho "completed" */
+  color: #51d28c;
+  background-color: rgba(81, 210, 140, .1);
 }
 
 .status-select.pending .ant-select-selector {
-  background-color: #faad14 !important; /* Màu vàng cho "pending" */
+  color: #f34e4e;
+  background-color: rgba(243, 78, 78, .1);
 }
 
 
