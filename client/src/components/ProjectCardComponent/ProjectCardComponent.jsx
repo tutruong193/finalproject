@@ -89,7 +89,7 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       backgroundColor: "rgba(247, 204, 83, .1)",
     },
     {
-      status: "completed",
+      status: "done",
       color: "#51d28c",
       backgroundColor: "rgba(81, 210, 140, .1)",
     },

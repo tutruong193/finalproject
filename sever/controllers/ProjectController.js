@@ -185,10 +185,53 @@ const updateProject = async (req, res) => {
     });
   }
 };
+const addMemberToProject = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.body.userId;
+    if (!projectId || !userId) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The input is required",
+      });
+    }
+    const response = await ProjectService.addMemberToProject(projectId, userId);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+const deleteMemberFromProject = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.body.userId;
+    if (!projectId || !userId) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The input is required",
+      });
+    }
+    const response = await ProjectService.deleteMemberFromProject(
+      projectId,
+      userId
+    );
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
 module.exports = {
   createProject,
   getAllProject,
   deleteProject,
   getDetailProject,
   updateProject,
+  addMemberToProject,
+  deleteMemberFromProject,
 };

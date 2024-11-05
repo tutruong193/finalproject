@@ -211,6 +211,100 @@ const updateProject = (id, data) => {
     }
   });
 };
+const addMemberToProject = (id, userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      console.log(userId);
+      const checkUser = await User.findById(userId);
+      if (!checkUser) {
+        return resolve({
+          status: "ERR",
+          message: "This user account does not exist",
+        });
+      }
+      const project = await Project.findById(id);
+      if (!project) {
+        return resolve({
+          status: "ERR",
+          message: "This project does not exist",
+        });
+      }
+
+      // Kiểm tra nếu user đã là thành viên của dự án
+      if (project.members.includes(userId)) {
+        return resolve({
+          status: "ERR",
+          message: "User is already a member of this project",
+        });
+      }
+      // Thêm user vào danh sách members của project
+      project.members.push({
+        userId: userId,
+        name: checkUser.name, // Lưu tên của người dùng
+      });
+      await project.save();
+
+      return resolve({
+        status: "OK",
+        message: "User added to project successfully",
+      });
+    } catch (e) {
+      // Trả về lỗi nếu có ngoại lệ xảy ra
+      return reject({
+        status: "ERR",
+        message: "An error occurred during project creation",
+        error: e,
+      });
+    }
+  });
+};
+const deleteMemberFromProject = (id, userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkUser = await User.findById(userId);
+      if (!checkUser) {
+        return resolve({
+          status: "ERR",
+          message: "This user account does not exist",
+        });
+      }
+      const project = await Project.findById(id);
+      if (!project) {
+        return resolve({
+          status: "ERR",
+          message: "This project does not exist",
+        });
+      }
+
+      // Kiểm tra nếu user không phải là thành viên của dự án
+      const memberIndex = project.members.findIndex(
+        (member) => member.userId.toString() === userId
+      );
+      if (memberIndex === -1) {
+        return resolve({
+          status: "ERR",
+          message: "User is not a member of this project",
+        });
+      }
+
+      // Xóa user khỏi danh sách members của project
+      project.members.splice(memberIndex, 1);
+      await project.save();
+
+      return resolve({
+        status: "OK",
+        message: "User removed from project successfully",
+      });
+    } catch (e) {
+      return reject({
+        status: "ERR",
+        message: "An error occurred while deleting member from project",
+        error: e,
+      });
+    }
+  });
+};
+
 // Hàm kiểm tra các project hết hạn
 const checkProjects = async () => {
   try {
@@ -268,4 +362,6 @@ module.exports = {
   deleteProject,
   getDetailProject,
   updateProject,
+  addMemberToProject,
+  deleteMemberFromProject,
 };

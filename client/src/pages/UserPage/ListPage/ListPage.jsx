@@ -19,6 +19,7 @@ import {
 import { useLocation } from "react-router-dom";
 import * as TaskService from "../../../services/TaskService";
 import * as ProjectService from "../../../services/ProjectService";
+import * as UserService from "../../../services/UserService";
 import { useQuery } from "@tanstack/react-query";
 import * as Message from "../../../components/MessageComponent/MessageComponent";
 import TableListView from "../../../components/TableListView/TableListView";
@@ -88,7 +89,7 @@ const ListPage = () => {
       value: "pending",
     },
   ];
-  //fetch task data
+  //fetch task data and user data
   const fetchTaskAll = async () => {
     const res = await TaskService.getAllTask(projectId);
     return res;
@@ -101,22 +102,43 @@ const ListPage = () => {
   });
   const { data: tasks } = taskQuery;
   const [stateProject, setStateProject] = useState([]);
+  const [userList, setUserList] = useState([]);
   const projectId = localStorage.getItem("projectId");
-  useEffect(() => {
-    const fetchTaskDataAndMemberList = async () => {
-      try {
-        const projectRes = await ProjectService.getDetailProjectProject(
-          projectId
-        );
-        if (projectRes.status === "OK") {
-          setStateProject(projectRes.data);
-        } else {
-          console.error("Error fetching project details");
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+  const fetchTaskDataAndMemberList = async () => {
+    try {
+      const [projectRes, userRes] = await Promise.all([
+        ProjectService.getDetailProjectProject(projectId),
+        UserService.getAllUser(), // Thay thế bằng hàm thực tế để lấy dữ liệu user
+      ]);
+      if (projectRes.status === "OK") {
+        setStateProject(projectRes.data);
+      } else {
+        console.error("Error fetching project details");
       }
-    };
+      if (userRes.status === "OK") {
+        const existingMemberIds = new Set(
+          projectRes.data.members.map((member) => member.userId)
+        );
+        existingMemberIds.add(projectRes.data.managerID);
+        existingMemberIds.add("66f4f0f9aa581e424317d838");
+        // Lọc danh sách user để loại bỏ những người dùng có ID trùng với các thành viên hiện có hoặc managerID
+        const filteredUserList = userRes.data
+          .filter((user) => !existingMemberIds.has(user._id))
+          .map((user) => ({
+            label: user.name,
+            value: user._id,
+          }));
+
+        setUserList(filteredUserList);
+      } else {
+        console.error("Error fetching project details");
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+  console.log(userList);
+  useEffect(() => {
     fetchTaskDataAndMemberList();
   }, [projectId]);
   //assign members to task
@@ -172,15 +194,33 @@ const ListPage = () => {
   };
   //add members to project
   const [isModalAddPeopleOpen, setIsModalAddPeopleOpen] = useState(false);
-  const [value, setValue] = useState(['Ava Swift']);
+  const [value, setValue] = useState();
   const showModalAddPeople = () => {
     setIsModalAddPeopleOpen(true);
   };
-  const handleOkAddPeople = () => {
-    setIsModalAddPeopleOpen(false);
+  const handleOkAddPeople = async () => {
+    const res = await ProjectService.AddMember(projectId, value);
+    if (res.status === "OK") {
+      Message.success();
+      setValue(null);
+      setIsModalAddPeopleOpen(false);
+      fetchTaskDataAndMemberList();
+    } else {
+      Message.error(res.message);
+    }
   };
   const handleCancelAddPeople = () => {
     setIsModalAddPeopleOpen(false);
+    setValue(null);
+  };
+  const handleRemoveMember = async (userId) => {
+    const res = await ProjectService.DeleteMember(projectId, userId);
+    if (res.status === "OK") {
+      Message.success();
+      fetchTaskDataAndMemberList();
+    } else {
+      Message.error(res.message);
+    }
   };
   return (
     <div className="task-page">
@@ -226,13 +266,51 @@ const ListPage = () => {
           </Avatar.Group>
           <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
           <Modal
-            title="Basic Modal"
+            title="Add people"
             open={isModalAddPeopleOpen}
             onOk={handleOkAddPeople}
             onCancel={handleCancelAddPeople}
           >
-            <div></div>
             <div>
+              <div>Search by name</div>
+              <Select
+                showSearch
+                allowClear
+                style={{
+                  width: 200,
+                }}
+                defaultValue={value}
+                onChange={(value) => setValue(value)}
+                placeholder="E.g. Peter,... "
+                optionFilterProp="label"
+                filterSort={(optionA, optionB) =>
+                  (optionA?.label ?? "")
+                    .toLowerCase()
+                    .localeCompare((optionB?.label ?? "").toLowerCase())
+                }
+                options={userList}
+              />
+            </div>
+            <div>
+              <div>Current Members</div>
+              {stateProject.members?.map((member) => (
+                <div
+                  key={member.userId}
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Text>{member.name}</Text>
+                  <Button
+                    type="link"
+                    onClick={() => handleRemoveMember(member.userId)}
+                    danger
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+            {/* <div>
+              <div>Select role</div>
               <Select
                 mode="multiple"
                 style={{
@@ -242,16 +320,16 @@ const ListPage = () => {
                 placeholder="Please select role"
                 options={[
                   {
-                    value: "Ava Swift",
-                    label: "Ava Swift",
+                    value: "manager",
+                    label: "Manager",
                   },
                   {
-                    value: "Cole Reed",
-                    label: "Cole Reed",
-                  }
+                    value: "member",
+                    label: "Member",
+                  },
                 ]}
               />
-            </div>
+            </div> */}
           </Modal>
         </div>
         <div className="toolbar-right">

@@ -32,3 +32,17 @@ export const getDetailProjectProject = async (projectId) => {
   );
   return res.data;
 };
+export const AddMember = async (projectId, userId) => {
+  const res = await axios.put(
+    `${process.env.REACT_APP_API_URL}/api/project/addmember/${projectId}`,
+    { userId }
+  );
+  return res.data;
+};
+export const DeleteMember = async (projectId, userId) => {
+  const res = await axios.put(
+    `${process.env.REACT_APP_API_URL}/api/project/deletemember/${projectId}`,
+    { userId }
+  );
+  return res.data;
+};
