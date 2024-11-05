@@ -14,14 +14,15 @@ import {
   DatePicker,
   Select,
   Avatar,
+  Typography,
 } from "antd";
-import TaskCardComponent from "../../../components/TaskCardComponent/TaskCardComponent";
 import { useLocation } from "react-router-dom";
 import * as TaskService from "../../../services/TaskService";
 import * as ProjectService from "../../../services/ProjectService";
 import { useQuery } from "@tanstack/react-query";
 import * as Message from "../../../components/MessageComponent/MessageComponent";
 import TableListView from "../../../components/TableListView/TableListView";
+const { Title, Text } = Typography;
 const ListPage = () => {
   //setup
   const [statusValue, setStatusValue] = useState("all"); // giá trị trạng thái đã chọn
@@ -100,7 +101,6 @@ const ListPage = () => {
   });
   const { data: tasks } = taskQuery;
   const [stateProject, setStateProject] = useState([]);
-  const location = useLocation();
   const projectId = localStorage.getItem("projectId");
   useEffect(() => {
     const fetchTaskDataAndMemberList = async () => {
@@ -170,68 +170,36 @@ const ListPage = () => {
       Message.error("An error occurred while adding the task.");
     }
   };
+  //add members to project
+  const [isModalAddPeopleOpen, setIsModalAddPeopleOpen] = useState(false);
+  const [value, setValue] = useState(['Ava Swift']);
+  const showModalAddPeople = () => {
+    setIsModalAddPeopleOpen(true);
+  };
+  const handleOkAddPeople = () => {
+    setIsModalAddPeopleOpen(false);
+  };
+  const handleCancelAddPeople = () => {
+    setIsModalAddPeopleOpen(false);
+  };
   return (
     <div className="task-page">
       <div className="task-title">
-        <div className="task-title-link">
-          <div className="title-default" style={{ color: "black" }}>
-            Project
-          </div>
-          <div className="title-default" style={{ color: "black" }}>
-            {" "}
-            /{" "}
-          </div>
-          <div className="title-default" style={{ color: "black" }}>
-            {" "}
-            ProjectName{" "}
-          </div>
+        <div className="breadcrumb">
+          <div>Project</div>
+          <div>/</div>
+          <div>ProjectName</div>
         </div>
-        <h2
-          style={{
-            fontSize: "25px",
-            fontWeight: 600,
-            fontFamily: "Roboto, sans-serif",
-          }}
-        >
-          List
-        </h2>
+        <Title level={4} style={{ margin: 0 }}>
+          LIST
+        </Title>
       </div>
-
-      {/* <div className="filter-container">
-            <div className="filter-section">
-              <h4 className="filter-title">Status</h4>
-              <Radio.Group onChange={handleStatusChange} value={statusValue}>
-                {itemStatus.map((item) => (
-                  <div key={item.value} className="radio-item">
-                    <Radio value={item.value}>{item.label}</Radio>
-                  </div>
-                ))}
-              </Radio.Group>
-            </div>
-            <div className="filter-section">
-              <h4 className="filter-title">Thứ Tự</h4>
-              <Radio.Group onChange={handleOrderChange} value={orderValue}>
-                {itemThutu.map((item) => (
-                  <div key={item.value} className="radio-item">
-                    <Radio value={item.value}>{item.label}</Radio>
-                  </div>
-                ))}
-              </Radio.Group>
-            </div>
-            <Button
-              type="primary"
-              className="apply-button"
-              onClick={handleApply}
-            >
-              Áp dụng
-            </Button>
-          </div> */}
-      <div className="task_container_action">
-        <div className="task_container_action_children">
+      <div className="toolbar">
+        <div className="toolbar-left">
           <Input
-            placeholder="default size"
             prefix={<SearchOutlined />}
-            style={{ width: "200px", border: "1px solid" }}
+            placeholder="Search"
+            style={{ width: 240 }}
           />
           <Avatar.Group
             max={{
@@ -242,15 +210,51 @@ const ListPage = () => {
               },
             }}
           >
-            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
-            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
-            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
-            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
+            {options.map((member) => (
+              <Avatar
+                style={{
+                  backgroundColor: "#87d068",
+                  cursor: "pointer",
+                }}
+                key={member.value}
+                alt={member.label}
+                title={member.label}
+              >
+                {member.label.charAt(0).toUpperCase()}
+              </Avatar>
+            ))}
           </Avatar.Group>
-          <Avatar icon={<PlusOutlined />} />
+          <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
+          <Modal
+            title="Basic Modal"
+            open={isModalAddPeopleOpen}
+            onOk={handleOkAddPeople}
+            onCancel={handleCancelAddPeople}
+          >
+            <div></div>
+            <div>
+              <Select
+                mode="multiple"
+                style={{
+                  width: "100%",
+                }}
+                onChange={setValue}
+                placeholder="Please select role"
+                options={[
+                  {
+                    value: "Ava Swift",
+                    label: "Ava Swift",
+                  },
+                  {
+                    value: "Cole Reed",
+                    label: "Cole Reed",
+                  }
+                ]}
+              />
+            </div>
+          </Modal>
         </div>
-
-        <div className="task_container_action_children">
+        <div className="toolbar-right">
           <Button
             icon={<PlusOutlined />}
             className="action_button"
@@ -269,7 +273,6 @@ const ListPage = () => {
       <div className="task-card-container">
         <TableListView data={tasks?.data || []} />
       </div>
-
       <Modal
         title="Add New Task"
         open={isModalVisible}

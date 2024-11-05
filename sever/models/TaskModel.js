@@ -23,23 +23,16 @@ const taskSchema = new mongoose.Schema(
           required: true,
         },
         name: { type: String, required: true },
-        status: {
-          type: String,
-          enum: ["progress", "completed"],
-          required: true,
-          default: "progress",
-        },
       },
     ],
     status: {
       type: String,
-      enum: ["progress", "completed"],
-      default: "progress",
+      enum: ["todo", "progress", "done"],
+      default: "todo",
     },
     priority: {
       type: String,
       enum: ["low", "medium", "high"],
-      default: "medium",
     },
     dueDate: {
       type: Date,
@@ -53,12 +46,16 @@ const taskSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ["progress", "completed"],
-          default: "progress",
+          enum: ["todo", "progress", "done"],
+          default: "todo",
         },
         dueDate: {
           type: Date,
           required: true,
+        },
+        priority: {
+          type: String,
+          enum: ["low", "medium", "high"],
         },
         assignees: [
           {
@@ -69,12 +66,6 @@ const taskSchema = new mongoose.Schema(
               required: true,
             },
             name: { type: String, required: true },
-            status: {
-              type: String,
-              enum: ["progress", "completed"],
-              required: true,
-              default: "progress",
-            },
           },
         ],
       },

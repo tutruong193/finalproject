@@ -159,8 +159,9 @@ const deleteSubTask = async (req, res) => {
 };
 const updateStatusSubtask = async (req, res) => {
   try {
+    const {status} = req.body;
     const { taskId, subtaskId, userId } = req.params; // Lấy taskId và subtaskId từ params
-    if (!taskId || !userId) {
+    if (!taskId || !userId || !subtaskId || !status) {
       return res.status(400).json({
         status: "ERR",
         message: "TaskID or UserID is required",
@@ -169,7 +170,8 @@ const updateStatusSubtask = async (req, res) => {
     const response = await TaskService.updateStatusSubtask(
       taskId,
       subtaskId,
-      userId
+      userId,
+      status
     );
     return res.status(200).json(response);
   } catch (e) {
@@ -182,13 +184,14 @@ const updateStatusSubtask = async (req, res) => {
 const updateStatusTask = async (req, res) => {
   try {
     const { taskId, userId } = req.params; // Lấy taskId và subtaskId từ params
-    if (!taskId || !userId) {
+    const {status} = req.body;
+    if (!taskId || !userId || !status) {
       return res.status(400).json({
         status: "ERR",
-        message: "TaskID or UserID is required",
+        message: "Input is required",
       });
     }
-    const response = await TaskService.updateStatusTask(taskId, userId);
+    const response = await TaskService.updateStatusTask(taskId, userId, status);
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);

@@ -1,18 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { Typography } from "antd";
 import * as TaskService from "../../../services/TaskService";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import {
+  SearchOutlined,
+  PlusOutlined,
+  EllipsisOutlined,
+  SettingOutlined,
+  BarChartOutlined,
+  FullscreenOutlined,
+} from "@ant-design/icons";
+import { Input, Button, Typography, Avatar, Space } from "antd";
+import Column from "../../../components/Board/Column";
 
-dayjs.extend(relativeTime);
-
+const { Title, Text } = Typography;
 const BoardPage = () => {
   const projectId = localStorage.getItem("projectId");
   const [columns, setColumns] = useState({
-    pending: { name: "To Do", items: [] },
-    progress: { name: "In Progress", items: [] },
-    completed: { name: "Done", items: [] },
+    todo: { name: "TO DO", count: 1, items: [] },
+    progress: { name: "IN PROGRESS", count: 1, items: [] },
+    done: { name: "DONE", count: 3, items: [] },
   });
 
   const fetchTasks = async () => {
@@ -21,22 +29,23 @@ const BoardPage = () => {
       if (res.status === "OK") {
         const taskData = res.data;
         const newColumns = {
-          pending: {
-            name: "To Do",
-            items: taskData.filter((task) => task.status === "pending"),
+          todo: {
+            name: "TO DO",
+            count: taskData.filter((task) => task.status === "todo").length,
+            items: taskData.filter((task) => task.status === "todo"),
           },
           progress: {
-            name: "In Progress",
+            name: "IN PROGRESS",
+            count: taskData.filter((task) => task.status === "progress").length,
             items: taskData.filter((task) => task.status === "progress"),
           },
-          completed: {
-            name: "Done",
-            items: taskData.filter((task) => task.status === "completed"),
+          done: {
+            name: "DONE",
+            count: taskData.filter((task) => task.status === "done").length,
+            items: taskData.filter((task) => task.status === "done"),
           },
         };
         setColumns(newColumns);
-      } else {
-        console.error("Failed to fetch tasks:", res.message);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -51,21 +60,17 @@ const BoardPage = () => {
     if (!result.destination) return;
 
     const { source, destination } = result;
-
     const sourceColumn = columns[source.droppableId];
     const destColumn = columns[destination.droppableId];
     const sourceItems = Array.from(sourceColumn.items);
     const destItems = Array.from(destColumn.items);
     const [movedItem] = sourceItems.splice(source.index, 1);
 
-    // Cập nhật trạng thái cho mục di chuyển
     movedItem.status = destination.droppableId;
 
     if (source.droppableId !== destination.droppableId) {
-      // Kéo từ cột này sang cột khác
       destItems.splice(destination.index, 0, movedItem);
     } else {
-      // Kéo trong cùng một cột
       sourceItems.splice(destination.index, 0, movedItem);
     }
 
@@ -74,72 +79,64 @@ const BoardPage = () => {
       [source.droppableId]: {
         ...sourceColumn,
         items: sourceItems,
+        count: sourceItems.length,
       },
       [destination.droppableId]: {
         ...destColumn,
         items: destItems,
+        count: destItems.length,
       },
     });
   };
 
   return (
-    <div>
-      <Typography.Title style={{ textAlign: "center" }}>Jira Board</Typography.Title>
-      <div style={{ display: "flex", justifyContent: "center", height: "100%" }}>
-        <DragDropContext onDragEnd={onDragEnd}>
-          {Object.entries(columns).map(([columnId, column]) => (
-            <div
-              key={columnId}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                margin: "0 8px",
-              }}
-            >
-              <Typography.Title level={5}>{column.name}</Typography.Title>
-              <Droppable droppableId={columnId}>
-                {(provided, snapshot) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    style={{
-                      background: snapshot.isDraggingOver ? "lightblue" : "lightgrey",
-                      padding: 4,
-                      width: 250,
-                      minHeight: 500,
-                    }}
-                  >
-                    {column.items.map((item, index) => (
-                      <Draggable key={item._id} draggableId={item._id} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            style={{
-                              userSelect: "none",
-                              padding: 16,
-                              margin: "0 0 8px 0",
-                              minHeight: "50px",
-                              backgroundColor: snapshot.isDragging ? "#263B4A" : "#456C86",
-                              color: "white",
-                              ...provided.draggableProps.style,
-                            }}
-                          >
-                            {item.name}
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </div>
-          ))}
-        </DragDropContext>
+    <div className="board-container">
+      <div className="board-header">
+        <div className="breadcrumb">
+          <span>Projects</span>
+          <span>/</span>
+          <span>tu</span>
+        </div>
+        <div>
+          <Title level={4} style={{ margin: 0 }}>
+            KAN board
+          </Title>
+        </div>
       </div>
+
+      <div className="toolbar">
+        <div className="toolbar-left">
+          <Input
+            prefix={<SearchOutlined />}
+            placeholder="Search"
+            style={{ width: 240 }}
+          />
+          <Avatar.Group
+            max={{
+              count: 2,
+              style: {
+                color: "#f56a00",
+                backgroundColor: "#fde3cf",
+              },
+            }}
+          >
+            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=1" />
+            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=2" />
+            <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=3" />
+          </Avatar.Group>
+          <Avatar icon={<PlusOutlined />} />
+        </div>
+        <div className="toolbar-right">
+          <Button icon={<SettingOutlined />}>View settings</Button>
+        </div>
+      </div>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="board-columns">
+          {Object.entries(columns).map(([columnId, column]) => (
+            <Column key={columnId} columnId={columnId} column={column} />
+          ))}
+        </div>
+      </DragDropContext>
     </div>
   );
 };
