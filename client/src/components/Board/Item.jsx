@@ -3,7 +3,7 @@ import { Draggable } from "react-beautiful-dnd";
 import dayjs from "dayjs";
 import {
   Select,
-  Table,
+  Radio,
   Avatar,
   Modal,
   Button,
@@ -12,6 +12,8 @@ import {
   Input,
   Tooltip,
   Checkbox,
+  Form,
+  DatePicker,
 } from "antd";
 import * as TaskService from "../../services/TaskService";
 import {
@@ -22,6 +24,9 @@ import {
   EllipsisOutlined,
 } from "@ant-design/icons";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { jwtTranslate } from "../../ultilis";
+import { useCookies } from "react-cookie";
+import * as Message from "../../components/MessageComponent/MessageComponent";
 dayjs.extend(relativeTime);
 // Thay đổi mảng columns để phù hợp với dữ liệu mới
 const dateFormatOptions = {
@@ -35,8 +40,24 @@ const renderDate = (date) => {
   if (isNaN(parsedDate)) return "Invalid Date"; // Kiểm tra xem có phải là ngày hợp lệ không
   return new Intl.DateTimeFormat("en-US", dateFormatOptions).format(parsedDate);
 };
-const { Title, Text } = Typography;
-const Item = ({ item, index }) => {
+const { Text } = Typography;
+const itemPriority = [
+  {
+    label: "High",
+    value: "high",
+  },
+  {
+    label: "Medium",
+    value: "medium",
+  },
+  {
+    label: "Low",
+    value: "low",
+  },
+];
+const Item = ({ item, index, fetchTasks }) => {
+  const [cookiesAccessToken] = useCookies("");
+  const infoUser = jwtTranslate(cookiesAccessToken.access_token);
   // Modal for task information
   const [isModalTaskInformation, setIsModalTaskInformation] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -56,6 +77,94 @@ const Item = ({ item, index }) => {
     setSelectedTask(null);
     setIsModalTaskInformation(false);
   };
+  //change status task
+  const onChangeStatusTask = async (value) => {
+    const res = await TaskService.updateStatusTask(
+      selectedTask._id,
+      infoUser.id,
+      value
+    );
+    if (res.status === "OK") {
+      Message.success();
+      fetchTaskData(selectedTask._id);
+      fetchTasks();
+    } else {
+      Message.error(res.message);
+    }
+  };
+  // Modal for adding subtask
+  const [isSubtaskModalVisible, setIsSubtaskModalVisible] = useState(false);
+  const [formSubtask] = Form.useForm();
+  const [piorityValue, setPiorityValue] = useState("high");
+  const handleChangePriority = (e) => {
+    setPiorityValue(e.target.value);
+  };
+  const options = [];
+  if (selectedTask?.assignees) {
+    // Sử dụng members thay vì membersID
+    for (let i = 0; i < selectedTask?.assignees.length; i++) {
+      options.push({
+        value: selectedTask?.assignees[i].userId, // ID thành viên
+        label: selectedTask?.assignees[i].name, // Tên thành viên
+      });
+    }
+  }
+  const showSubtaskModal = () => {
+    setIsSubtaskModalVisible(true);
+  };
+  const handleAddSubtask = async () => {
+    try {
+      const values = await formSubtask.validateFields();
+      // Lấy thông tin assignees từ stateTask để lưu cả ID và tên
+      const selectedAssignees = values.assignees.map((userId) => {
+        const assignee = selectedTask.assignees.find(
+          (a) => a.userId === userId
+        );
+        return { userId: assignee.userId, name: assignee.name };
+      });
+      // Thêm subtask mới với thông tin đầy đủ của assignees
+      const newSubtask = {
+        ...values,
+        assignees: selectedAssignees, // Lưu cả ID và tên
+      };
+      const res = await TaskService.addSubTask(selectedTask._id, newSubtask);
+      if (res.status === "OK") {
+        Message.success(res.message);
+        formSubtask.resetFields();
+        setIsSubtaskModalVisible(false);
+        fetchTaskData(selectedTask._id);
+      } else {
+        Message.error(res.message);
+      }
+    } catch (error) {
+      console.error("Validation failed:", error);
+    }
+  };
+  const handleCancelSubtaskModal = () => {
+    setIsSubtaskModalVisible(false);
+  };
+  //change status subtask
+  const onChangeStatusSubtask = async (subtaskId, newStatus) => {
+    try {
+      const res = await TaskService.updateStatusSubtask(
+        selectedTask._id,
+        subtaskId,
+        infoUser.id,
+        newStatus
+      );
+      if (res.status === "OK") {
+        Message.success();
+        fetchTaskData(selectedTask._id);
+        fetchTasks(); // Cập nhật lại thông tin của task để hiển thị trạng thái mới của subtask
+      } else {
+        Message.error(res.message);
+      }
+    } catch (error) {
+      console.error("Error updating subtask status:", error);
+      Message.error("Failed to update subtask status");
+    }
+  };
+
   return (
     <div>
       <Draggable draggableId={item._id} index={index}>
@@ -108,19 +217,20 @@ const Item = ({ item, index }) => {
               style={{
                 width: 120,
               }}
+              onChange={onChangeStatusTask}
               className={`status-select ${selectedTask?.status}`}
               options={[
                 {
+                  value: "todo",
+                  label: "Todo",
+                },
+                {
+                  value: "done",
+                  label: "Done",
+                },
+                {
                   value: "progress",
                   label: "Progress",
-                },
-                {
-                  value: "completed",
-                  label: "Completed",
-                },
-                {
-                  value: "pending",
-                  label: "Pending",
                 },
               ]}
             />
@@ -136,7 +246,7 @@ const Item = ({ item, index }) => {
               <button className="action-button">
                 <PaperClipOutlined /> Attach
               </button>
-              <button className="action-button">
+              <button className="action-button" onClick={showSubtaskModal}>
                 <PlusOutlined /> Add a child issue
               </button>
               <button className="action-button">
@@ -208,19 +318,22 @@ const Item = ({ item, index }) => {
                           style={{
                             width: 120,
                           }}
+                          onChange={(value) =>
+                            onChangeStatusSubtask(subtask._id, value)
+                          }
                           className={`status-select ${subtask?.status}`}
                           options={[
                             {
+                              value: "todo",
+                              label: "Todo",
+                            },
+                            {
+                              value: "done",
+                              label: "Done",
+                            },
+                            {
                               value: "progress",
-                              label: "progress",
-                            },
-                            {
-                              value: "completed",
-                              label: "completed",
-                            },
-                            {
-                              value: "pending",
-                              label: "pending",
+                              label: "Progress",
                             },
                           ]}
                         />
@@ -352,6 +465,55 @@ const Item = ({ item, index }) => {
             </div>
           </div>
         </div>
+      </Modal>
+      <Modal
+        title="Add Subtask"
+        open={isSubtaskModalVisible}
+        onCancel={handleCancelSubtaskModal}
+        onOk={handleAddSubtask}
+      >
+        <Form form={formSubtask} layout="vertical">
+          <Form.Item
+            name="name"
+            label="Subtask Name"
+            rules={[
+              { required: true, message: "Please input the subtask name!" },
+            ]}
+          >
+            <Input placeholder="Enter subtask name" />
+          </Form.Item>
+          <Form.Item
+            label="Priority"
+            name="priority"
+            rules={[{ required: true, message: "Please select the due date!" }]}
+          >
+            <Radio.Group onChange={handleChangePriority} value={piorityValue}>
+              {itemPriority.map((item) => (
+                <Radio value={item.value}>{item.label}</Radio>
+              ))}
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            name="dueDate"
+            label="Due Date"
+            rules={[{ required: true, message: "Please input the due date!" }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item
+            label="Assign Member"
+            name="assignees"
+            rules={[
+              { required: true, message: "Please input the subtask name!" },
+            ]}
+          >
+            <Select
+              mode="multiple"
+              options={options}
+              style={{ width: "100%" }}
+            ></Select>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

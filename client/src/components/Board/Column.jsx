@@ -4,7 +4,7 @@ import { Droppable } from "react-beautiful-dnd";
 import { Button, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 const {  Text } = Typography;
-const Column = ({ columnId, column }) => {
+const Column = ({ columnId, column, fetchTasks  }) => {
   return (
     <Droppable droppableId={columnId}>
       {(provided, snapshot) => (
@@ -25,7 +25,7 @@ const Column = ({ columnId, column }) => {
             }}
           >
             {column.items.map((item, index) => (
-              <Item key={item._id} item={item} index={index} />
+              <Item key={item._id} item={item} index={index} fetchTasks={fetchTasks}/>
             ))}
             {provided.placeholder}
           </div>

@@ -24,6 +24,7 @@ const createTask = (data) => {
       const dueDateUTC = moment.utc(dueDate);
       const projectEndDate = moment.utc(project.endDate);
       const projectStartDate = moment.utc(project.startDate);
+      const currentDateUTC = moment.utc();
       if (projectEndDate < dueDateUTC) {
         return resolve({
           status: "ERR",
@@ -52,6 +53,13 @@ const createTask = (data) => {
           status: "ERR",
           message: "One or more assignees are invalid",
         });
+      }
+      if (
+        project.status === "done" &&
+        currentDateUTC.isBefore(projectEndDate)
+      ) {
+        project.status = "progress";
+        await project.save();
       }
       // Tạo task mới
       const createdTask = await Task.create({

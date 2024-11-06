@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { useCookies } from "react-cookie";
 import * as TaskService from "../../../services/TaskService";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -11,9 +12,10 @@ import {
   BarChartOutlined,
   FullscreenOutlined,
 } from "@ant-design/icons";
+import * as Message from "../../../components/MessageComponent/MessageComponent";
 import { Input, Button, Typography, Avatar, Space } from "antd";
 import Column from "../../../components/Board/Column";
-
+import { jwtTranslate } from "../../../ultilis";
 const { Title, Text } = Typography;
 const BoardPage = () => {
   const projectId = localStorage.getItem("projectId");
@@ -22,7 +24,8 @@ const BoardPage = () => {
     progress: { name: "IN PROGRESS", count: 1, items: [] },
     done: { name: "DONE", count: 3, items: [] },
   });
-
+  const [cookiesAccessToken] = useCookies("");
+  const infoUser = jwtTranslate(cookiesAccessToken.access_token);
   const fetchTasks = async () => {
     try {
       const res = await TaskService.getAllTask(projectId);
@@ -56,7 +59,7 @@ const BoardPage = () => {
     fetchTasks();
   }, []);
 
-  const onDragEnd = (result) => {
+  const onDragEnd = async (result) => {
     if (!result.destination) return;
 
     const { source, destination } = result;
@@ -69,24 +72,90 @@ const BoardPage = () => {
     movedItem.status = destination.droppableId;
 
     if (source.droppableId !== destination.droppableId) {
-      destItems.splice(destination.index, 0, movedItem);
+      // destItems.splice(destination.index, 0, movedItem);
+      try {
+        // Gọi API để cập nhật trạng thái trong DB
+        const res = await TaskService.updateStatusTask(
+          movedItem._id,
+          infoUser.id,
+          movedItem.status
+        );
+        if (res.status === "OK") {
+          Message.success();
+          destItems.splice(destination.index, 0, movedItem);
+          setColumns({
+            ...columns,
+            [source.droppableId]: {
+              ...sourceColumn,
+              items: sourceItems,
+              count: sourceItems.length,
+            },
+            [destination.droppableId]: {
+              ...destColumn,
+              items: destItems,
+              count: destItems.length,
+            },
+          });
+        } else {
+          Message.error(res.message);
+          sourceItems.splice(source.index, 0, movedItem);
+          setColumns({
+            ...columns,
+            [source.droppableId]: {
+              ...sourceColumn,
+              items: sourceItems,
+              count: sourceItems.length,
+            },
+            [destination.droppableId]: {
+              ...destColumn,
+              items: destItems,
+              count: destItems.length,
+            },
+          });
+        }
+        // Thêm item vào cột đích và cập nhật lại UI
+      } catch (error) {
+        // Khôi phục lại trạng thái cũ trong UI nếu gặp lỗi
+        sourceItems.splice(source.index, 0, movedItem);
+        setColumns({
+          ...columns,
+          [source.droppableId]: {
+            ...sourceColumn,
+            items: sourceItems,
+            count: sourceItems.length,
+          },
+          [destination.droppableId]: {
+            ...destColumn,
+            items: destItems,
+            count: destItems.length,
+          },
+        });
+      }
     } else {
       sourceItems.splice(destination.index, 0, movedItem);
+      setColumns({
+        ...columns,
+        [source.droppableId]: {
+          ...sourceColumn,
+          items: sourceItems,
+          count: sourceItems.length,
+        },
+      });
     }
 
-    setColumns({
-      ...columns,
-      [source.droppableId]: {
-        ...sourceColumn,
-        items: sourceItems,
-        count: sourceItems.length,
-      },
-      [destination.droppableId]: {
-        ...destColumn,
-        items: destItems,
-        count: destItems.length,
-      },
-    });
+    // setColumns({
+    //   ...columns,
+    //   [source.droppableId]: {
+    //     ...sourceColumn,
+    //     items: sourceItems,
+    //     count: sourceItems.length,
+    //   },
+    //   [destination.droppableId]: {
+    //     ...destColumn,
+    //     items: destItems,
+    //     count: destItems.length,
+    //   },
+    // });
   };
 
   return (
@@ -133,7 +202,7 @@ const BoardPage = () => {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="board-columns">
           {Object.entries(columns).map(([columnId, column]) => (
-            <Column key={columnId} columnId={columnId} column={column} />
+            <Column key={columnId} columnId={columnId} column={column} fetchTasks={fetchTasks}/>
           ))}
         </div>
       </DragDropContext>
