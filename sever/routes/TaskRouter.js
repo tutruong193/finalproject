@@ -4,7 +4,7 @@ const TaskController = require("../controllers/TaskController");
 
 router.get("/getall", TaskController.getAllTask);
 router.post("/create", TaskController.createTask);
-router.delete("/delete/:id", TaskController.deleteTask);
+router.delete("/delete", TaskController.deleteTask);
 router.post("/create-subtask/:id", TaskController.addSubtask);
 router.delete(
   "/delete/task/:taskId/subtask/:subtaskId",

@@ -214,7 +214,6 @@ const updateProject = (id, data) => {
 const addMemberToProject = (id, userId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      console.log(userId);
       const checkUser = await User.findById(userId);
       if (!checkUser) {
         return resolve({
@@ -291,9 +290,32 @@ const deleteMemberFromProject = (id, userId) => {
       project.members.splice(memberIndex, 1);
       await project.save();
 
+      const tasks = await Task.find({ projectId: id });
+
+      for (const task of tasks) {
+        // Xóa user khỏi danh sách assignees trong task
+        const assigneeIndex = task.assignees.findIndex(
+          (assignee) => assignee.userId.toString() === userId
+        );
+        if (assigneeIndex !== -1) {
+          task.assignees.splice(assigneeIndex, 1);
+        }
+        if (task.subtasks && task.subtasks.length > 0) {
+          for (const subtask of task.subtasks) {
+            const subAssigneeIndex = subtask.assignees.findIndex(
+              (assignee) => assignee.userId.toString() === userId
+            );
+            if (subAssigneeIndex !== -1) {
+              subtask.assignees.splice(subAssigneeIndex, 1);
+            }
+          }
+        }
+        await task.save();
+      }
       return resolve({
         status: "OK",
-        message: "User removed from project successfully",
+        message:
+          "User removed from project and all associated tasks/subtasks successfully",
       });
     } catch (e) {
       return reject({
@@ -348,8 +370,6 @@ const checkProjects = async () => {
         await project.save(); // Lưu project sau khi cập nhật
       }
     }
-
-    console.log("Project status check completed!");
   } catch (error) {
     console.error("Error checking project status:", error);
   }

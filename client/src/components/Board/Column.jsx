@@ -3,8 +3,8 @@ import Item from "./Item"; // Nhập component Item
 import { Droppable } from "react-beautiful-dnd";
 import { Button, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-const {  Text } = Typography;
-const Column = ({ columnId, column, fetchTasks  }) => {
+const { Text } = Typography;
+const Column = ({ columnId, column, fetchAllData }) => {
   return (
     <Droppable droppableId={columnId}>
       {(provided, snapshot) => (
@@ -14,7 +14,6 @@ const Column = ({ columnId, column, fetchTasks  }) => {
               <Text strong>{column.name}</Text>
               <Text className="column-count">{column.count}</Text>
             </div>
-            <Button type="text" size="small" icon={<PlusOutlined />} />
           </div>
           <div
             {...provided.droppableProps}
@@ -25,7 +24,12 @@ const Column = ({ columnId, column, fetchTasks  }) => {
             }}
           >
             {column.items.map((item, index) => (
-              <Item key={item._id} item={item} index={index} fetchTasks={fetchTasks}/>
+              <Item
+                key={item._id}
+                item={item}
+                index={index}
+                fetchAllData={fetchAllData}
+              />
             ))}
             {provided.placeholder}
           </div>

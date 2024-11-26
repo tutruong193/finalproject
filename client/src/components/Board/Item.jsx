@@ -55,7 +55,7 @@ const itemPriority = [
     value: "low",
   },
 ];
-const Item = ({ item, index, fetchTasks }) => {
+const Item = ({ item, index, fetchAllData }) => {
   const [cookiesAccessToken] = useCookies("");
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
   // Modal for task information
@@ -87,7 +87,7 @@ const Item = ({ item, index, fetchTasks }) => {
     if (res.status === "OK") {
       Message.success();
       fetchTaskData(selectedTask._id);
-      fetchTasks();
+      fetchAllData()
     } else {
       Message.error(res.message);
     }
@@ -155,7 +155,7 @@ const Item = ({ item, index, fetchTasks }) => {
       if (res.status === "OK") {
         Message.success();
         fetchTaskData(selectedTask._id);
-        fetchTasks(); // Cập nhật lại thông tin của task để hiển thị trạng thái mới của subtask
+        fetchAllData(); // Cập nhật lại thông tin của task để hiển thị trạng thái mới của subtask
       } else {
         Message.error(res.message);
       }

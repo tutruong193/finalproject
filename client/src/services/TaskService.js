@@ -16,9 +16,13 @@ export const createTask = async (data) => {
   );
   return res.data;
 };
-export const deleteTask = async (taskId) => {
+export const deleteTask = async (taskIds) => {
+  console.log(taskIds);
   const res = await axios.delete(
-    `${process.env.REACT_APP_API_URL}/api/task/delete/${taskId}`
+    `${process.env.REACT_APP_API_URL}/api/task/delete/`,
+    {
+      data: { taskIds }
+    }
   );
   return res.data;
 };

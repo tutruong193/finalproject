@@ -287,22 +287,35 @@ const addSubtask = async (id, data) => {
     }
   });
 };
-const deleteTask = async (taskId) => {
+const deleteTask = async (taskIds) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const task = await Task.findByIdAndDelete(taskId);
-      if (!task) {
+      if (taskIds.length === 0) {
         return resolve({
           status: "ERR",
-          message: "Task not found",
+          message: "Invalid input: taskIds must be a non-empty array",
         });
       }
-      resolve({
+      for (const taskId of taskIds) {
+        const task = await Task.findByIdAndDelete(taskId);
+        if (!task) {
+          return resolve({
+            status: "ERR",
+            message: `Task with ID ${taskId} not found`,
+          });
+        }
+      }
+
+      return resolve({
         status: "OK",
-        message: "Task Delete successfully",
+        message: "All tasks deleted successfully",
       });
     } catch (error) {
-      throw error;
+      return reject({
+        status: "ERR",
+        message: "An error occurred while deleting tasks",
+        error: error,
+      });
     }
   });
 };
@@ -491,7 +504,6 @@ const updateStatusTask = async (taskId, userId, status) => {
       });
       const allTasksCompleted = tasks.every((t) => t.status === "done");
       // Nếu tất cả tasks đã hoàn thành, cập nhật trạng thái của project thành "completed"
-      console.log(allTasksCompleted);
       if (allTasksCompleted) {
         await Project.findByIdAndUpdate(task.projectId, {
           status: "done",

@@ -121,14 +121,14 @@ const addSubtask = async (req, res) => {
 };
 const deleteTask = async (req, res) => {
   try {
-    const taskId = req.params.id;
-    if (!taskId) {
+    const { taskIds } = req.body;
+    if (!taskIds) {
       return res.status(400).json({
         status: "ERR",
         message: "TaskID is required",
       });
     }
-    const response = await TaskService.deleteTask(taskId);
+    const response = await TaskService.deleteTask(taskIds);
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
@@ -159,7 +159,7 @@ const deleteSubTask = async (req, res) => {
 };
 const updateStatusSubtask = async (req, res) => {
   try {
-    const {status} = req.body;
+    const { status } = req.body;
     const { taskId, subtaskId, userId } = req.params; // Lấy taskId và subtaskId từ params
     if (!taskId || !userId || !subtaskId || !status) {
       return res.status(400).json({
@@ -184,7 +184,7 @@ const updateStatusSubtask = async (req, res) => {
 const updateStatusTask = async (req, res) => {
   try {
     const { taskId, userId } = req.params; // Lấy taskId và subtaskId từ params
-    const {status} = req.body;
+    const { status } = req.body;
     if (!taskId || !userId || !status) {
       return res.status(400).json({
         status: "ERR",

@@ -3,16 +3,12 @@ import {
   SearchOutlined,
   PlusOutlined,
   FilterOutlined,
-  EllipsisOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import {
   Input,
   Button,
-  Radio,
-  Modal,
   Form,
-  DatePicker,
-  Select,
   Avatar,
   Typography,
 } from "antd";
@@ -21,8 +17,10 @@ import * as TaskService from "../../../services/TaskService";
 import * as ProjectService from "../../../services/ProjectService";
 import * as UserService from "../../../services/UserService";
 import { useQuery } from "@tanstack/react-query";
+import ModalAddProject from "../../../components/ModalAddProject/ModalAddProject";
 import * as Message from "../../../components/MessageComponent/MessageComponent";
 import TableListView from "../../../components/TableListView/TableListView";
+import AddPeopleModal from "../../../components/ModalAddPeople/ModelAddPeople";
 const { Title, Text } = Typography;
 const ListPage = () => {
   //setup
@@ -213,6 +211,7 @@ const ListPage = () => {
     setIsModalAddPeopleOpen(false);
     setValue(null);
   };
+
   const handleRemoveMember = async (userId) => {
     const res = await ProjectService.DeleteMember(projectId, userId);
     if (res.status === "OK") {
@@ -220,6 +219,23 @@ const ListPage = () => {
       fetchTaskDataAndMemberList();
     } else {
       Message.error(res.message);
+    }
+  };
+  ///delete task
+  const [selectedTaskIds, setSelectedTaskIds] = useState([]);
+  const handleDeleteTasks = async () => {
+    try {
+      const res = await TaskService.deleteTask(selectedTaskIds);
+      if (res.status === "OK") {
+        Message.success("Tasks deleted successfully!");
+        taskQuery.refetch();
+        setSelectedTaskIds([]); 
+      } else {
+        Message.error(res.message);
+      }
+    } catch (error) {
+      console.error("Error deleting tasks:", error);
+      Message.error("An error occurred while deleting tasks.");
     }
   };
   return (
@@ -265,72 +281,16 @@ const ListPage = () => {
             ))}
           </Avatar.Group>
           <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
-          <Modal
-            title="Add people"
-            open={isModalAddPeopleOpen}
-            onOk={handleOkAddPeople}
+          <AddPeopleModal
+            isVisible={isModalAddPeopleOpen}
             onCancel={handleCancelAddPeople}
-          >
-            <div>
-              <div>Search by name</div>
-              <Select
-                showSearch
-                allowClear
-                style={{
-                  width: 200,
-                }}
-                defaultValue={value}
-                onChange={(value) => setValue(value)}
-                placeholder="E.g. Peter,... "
-                optionFilterProp="label"
-                filterSort={(optionA, optionB) =>
-                  (optionA?.label ?? "")
-                    .toLowerCase()
-                    .localeCompare((optionB?.label ?? "").toLowerCase())
-                }
-                options={userList}
-              />
-            </div>
-            <div>
-              <div>Current Members</div>
-              {stateProject.members?.map((member) => (
-                <div
-                  key={member.userId}
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <Text>{member.name}</Text>
-                  <Button
-                    type="link"
-                    onClick={() => handleRemoveMember(member.userId)}
-                    danger
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-            </div>
-            {/* <div>
-              <div>Select role</div>
-              <Select
-                mode="multiple"
-                style={{
-                  width: "100%",
-                }}
-                onChange={setValue}
-                placeholder="Please select role"
-                options={[
-                  {
-                    value: "manager",
-                    label: "Manager",
-                  },
-                  {
-                    value: "member",
-                    label: "Member",
-                  },
-                ]}
-              />
-            </div> */}
-          </Modal>
+            onAddPeople={handleOkAddPeople}
+            userList={userList}
+            currentMembers={stateProject.members}
+            onChange={setValue}
+            onRemoveMember={handleRemoveMember}
+            value={value}
+          />
         </div>
         <div className="toolbar-right">
           <Button
@@ -343,79 +303,34 @@ const ListPage = () => {
           <Button icon={<FilterOutlined />} className="action_button">
             Filter
           </Button>
-          <Button icon={<EllipsisOutlined />} className="action_button">
-            More
+          <Button
+            icon={<DeleteOutlined />}
+            className="action_button"
+            disabled={selectedTaskIds.length === 0} // Vô hiệu hóa nếu không có task nào được chọn
+            onClick={handleDeleteTasks}
+          >
+            Delete
           </Button>
         </div>
       </div>
       <div className="task-card-container">
-        <TableListView data={tasks?.data || []} />
+        <TableListView
+          data={tasks?.data || []}
+          onRowSelectionChange={(selectedKeys) =>
+            setSelectedTaskIds(selectedKeys)
+          }
+        />
       </div>
-      <Modal
-        title="Add New Task"
-        open={isModalVisible}
-        onCancel={handleCancel}
-        footer={null} // Custom footer with form buttons
-      >
-        <Form
-          form={form}
-          onFinish={handleAddTask}
-          layout="vertical"
-          initialValues={{ priority: "high" }}
-        >
-          <Form.Item
-            label="Task Name"
-            name="name"
-            rules={[{ required: true, message: "Please input the task name!" }]}
-          >
-            <Input placeholder="Enter task name" />
-          </Form.Item>
-          <Form.Item label="Description" name="description">
-            <Input placeholder="Enter task name" />
-          </Form.Item>
-          <Form.Item
-            label="Priority"
-            name="priority"
-            rules={[{ required: true, message: "Please select the due date!" }]}
-          >
-            <Radio.Group onChange={handleChangePriority} value={piorityValue}>
-              {itemPriority.map((item) => (
-                <Radio value={item.value}>{item.label}</Radio>
-              ))}
-            </Radio.Group>
-          </Form.Item>
-          <Form.Item
-            label="Members"
-            name="assignees"
-            rules={[
-              { required: true, message: "Please select at least one member!" },
-            ]}
-          >
-            <Select
-              mode="multiple"
-              placeholder="Please select"
-              // onChange={handleChange}
-              style={{
-                width: "100%",
-              }}
-              options={options}
-            />
-          </Form.Item>
-          <Form.Item
-            label="Due Date"
-            name="dueDate"
-            rules={[{ required: true, message: "Please select the due date!" }]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
-              Add Task
-            </Button>
-            <Button onClick={handleCancel}>Cancel</Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+      <ModalAddProject
+        isModalVisible={isModalVisible}
+        handleCancel={handleCancel}
+        handleAddTask={handleAddTask}
+        form={form}
+        options={options}
+        itemPriority={itemPriority}
+        piorityValue={piorityValue}
+        handleChangePriority={handleChangePriority}
+      />
     </div>
   );
 };
