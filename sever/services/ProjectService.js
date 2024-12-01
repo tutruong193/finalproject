@@ -57,10 +57,9 @@ const createProject = (data) => {
       // Nếu tạo thành công, trả về kết quả
       if (createdProject) {
         await NotificationService.createNotification(
-          managerID,
-          "project",
-          "Project create success",
-          managerID
+          createdProject?._id,
+          createdProject?.members,
+          `Project ${name} is created successfully`
         );
         return resolve({
           status: "OK",

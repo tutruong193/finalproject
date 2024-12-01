@@ -141,7 +141,7 @@ const TableListView = ({ data, onRowSelectionChange }) => {
       key: "assignees",
       width: 120,
       render: (assignees) =>
-        assignees.length > 0 ? (
+        assignees?.length > 0 ? (
           <Avatar.Group count={2}>
             {assignees.map((assignee) => (
               <Avatar
@@ -157,30 +157,6 @@ const TableListView = ({ data, onRowSelectionChange }) => {
         ) : (
           "None"
         ),
-    },
-    {
-      title: "Priority",
-      dataIndex: "priority",
-      key: "priority",
-      width: 120,
-      render: (priority) => {
-        const tag = priorityTags.find((tag) => tag.priority === priority);
-        return (
-          <span
-            style={{
-              color: tag?.color || "black",
-              backgroundColor: tag?.backgroundColor || "transparent",
-              padding: "4px 8px",
-              borderRadius: "4px",
-              display: "inline-block",
-            }}
-          >
-            {priority
-              ? priority.charAt(0).toUpperCase() + priority.slice(1)
-              : "N/A"}
-          </span>
-        );
-      },
     },
     {
       title: "Due Date",
@@ -219,7 +195,7 @@ const TableListView = ({ data, onRowSelectionChange }) => {
       };
 
       // Chỉ thêm thuộc tính `children` nếu có `subtasks`
-      if (task.subtasks && task.subtasks.length > 0) {
+      if (task.subtasks && task?.subtasks?.length > 0) {
         formattedTask.children = task.subtasks.map((subtask) => ({
           ...subtask,
           type: "subtask",
@@ -278,7 +254,7 @@ const TableListView = ({ data, onRowSelectionChange }) => {
   const options = [];
   if (selectedTask?.assignees) {
     // Sử dụng members thay vì membersID
-    for (let i = 0; i < selectedTask?.assignees.length; i++) {
+    for (let i = 0; i < selectedTask?.assignees?.length; i++) {
       options.push({
         value: selectedTask?.assignees[i].userId, // ID thành viên
         label: selectedTask?.assignees[i].name, // Tên thành viên
@@ -696,12 +672,13 @@ const TableListView = ({ data, onRowSelectionChange }) => {
           </div>
         </div>
       </Modal>
-      <ModelDetailTask />
       <Modal
         title="Add Subtask"
         open={isSubtaskModalVisible}
         onCancel={handleCancelSubtaskModal}
         onOk={handleAddSubtask}
+        onChangeStatusTask={onChangeStatusTask}
+        infoUser={infoUser}
       >
         <Form form={formSubtask} layout="vertical">
           <Form.Item
@@ -712,17 +689,6 @@ const TableListView = ({ data, onRowSelectionChange }) => {
             ]}
           >
             <Input placeholder="Enter subtask name" />
-          </Form.Item>
-          <Form.Item
-            label="Priority"
-            name="priority"
-            rules={[{ required: true, message: "Please select the due date!" }]}
-          >
-            <Radio.Group onChange={handleChangePriority} value={piorityValue}>
-              {itemPriority.map((item) => (
-                <Radio value={item.value}>{item.label}</Radio>
-              ))}
-            </Radio.Group>
           </Form.Item>
           <Form.Item
             name="dueDate"

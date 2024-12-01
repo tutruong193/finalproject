@@ -1,7 +1,8 @@
 import React from "react";
-import { Modal, Select, Button, Typography } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-const { Text } = Typography;
+import { Modal, Select, Button, Typography, Avatar, List, Tooltip } from "antd";
+import { PlusOutlined, UserOutlined, DeleteOutlined } from "@ant-design/icons";
+
+const { Text, Title } = Typography;
 
 const AddPeopleModal = ({
   isVisible,
@@ -15,61 +16,108 @@ const AddPeopleModal = ({
 }) => {
   return (
     <Modal
-      title="Add people"
+      title={
+        <Title level={4} style={{ margin: 0, color: "#1890ff" }}>
+          Add Team Members
+        </Title>
+      }
       open={isVisible}
       onCancel={onCancel}
-      footer={
-        <Button onClick={onCancel} type="default">
+      width={500}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
           Cancel
+        </Button>,
+        <Button 
+          key="add" 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={onAddPeople}
+        >
+          Add Member
         </Button>
-      }
+      ]}
     >
-      <div>
-        <div>Search by name</div>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <Select
-            showSearch
-            allowClear
-            style={{
-              flex: 1,
+      <div style={{ padding: "0 10px" }}>
+        <div style={{ marginBottom: "20px" }}>
+          <Text strong>Search and Add Members</Text>
+          <div 
+            style={{ 
+              display: "flex", 
+              gap: "10px", 
+              alignItems: "center", 
+              marginTop: "10px" 
             }}
-            value={value}
-            onChange={onChange}
-            placeholder="E.g. Peter,..."
-            optionFilterProp="label"
-            filterSort={(optionA, optionB) =>
-              (optionA?.label ?? "")
-                .toLowerCase()
-                .localeCompare((optionB?.label ?? "").toLowerCase())
-            }
-            options={userList}
-          />
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => onAddPeople()}
           >
-            Add
-          </Button>
-        </div>
-      </div>
-      <div style={{ marginTop: "20px" }}>
-        <div>Current Members</div>
-        {currentMembers?.map((member) => (
-          <div
-            key={member.userId}
-            style={{ display: "flex", justifyContent: "space-between" }}
-          >
-            <Text>{member.name}</Text>
-            <Button
-              type="link"
-              onClick={() => onRemoveMember(member.userId)}
-              danger
-            >
-              Remove
-            </Button>
+            <Select
+              showSearch
+              allowClear
+              style={{
+                flex: 1,
+              }}
+              value={value}
+              onChange={onChange}
+              placeholder="Search by name"
+              optionFilterProp="label"
+              filterSort={(optionA, optionB) =>
+                (optionA?.label ?? "")
+                  .toLowerCase()
+                  .localeCompare((optionB?.label ?? "").toLowerCase())
+              }
+              options={userList}
+            />
           </div>
-        ))}
+        </div>
+
+        <div>
+          <Text strong>Current Team Members</Text>
+          {currentMembers?.length > 0 ? (
+            <List
+              itemLayout="horizontal"
+              dataSource={currentMembers}
+              renderItem={(member) => (
+                <List.Item
+                  actions={[
+                    <Tooltip title="Remove member" key="remove">
+                      <Button 
+                        type="text" 
+                        danger 
+                        icon={<DeleteOutlined />}
+                        onClick={() => onRemoveMember(member.userId)}
+                      >
+                        Remove
+                      </Button>
+                    </Tooltip>
+                  ]}
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar 
+                        icon={<UserOutlined />} 
+                        style={{ 
+                          backgroundColor: "#87d068",
+                          verticalAlign: 'middle' 
+                        }} 
+                      />
+                    }
+                    title={<Text>{member.name}</Text>}
+                    description={member.email || "No email"}
+                  />
+                </List.Item>
+              )}
+            />
+          ) : (
+            <div 
+              style={{ 
+                textAlign: "center", 
+                color: "#999", 
+                padding: "20px 0" 
+              }}
+            >
+              No members added yet
+            </div>
+          )}
+        </div>
       </div>
     </Modal>
   );

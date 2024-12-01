@@ -58,3 +58,30 @@ export const updateUser = async (id, data) => {
   );
   return res.data;
 };
+export const sendVertifyCode = async (id) => {
+  const res = await axios.post(
+    `${process.env.REACT_APP_API_URL}/api/user/send-vertify-code/${id}`
+  );
+  return res.data;
+};
+export const vertifyCode = async (id, code) => {
+  const res = await axios.post(
+    `${process.env.REACT_APP_API_URL}/api/user/send-vertify-code/${id}`,
+    { code }
+  );
+  return res.data;
+};
+export const vertifyUser = async (email) => {
+  const res = await axios.post(
+    `${process.env.REACT_APP_API_URL}/api/user/vertify`,
+    { email }
+  );
+  return res.data;
+};
+export const changePassword = async (id, password) => {
+  const res = await axios.put(
+    `${process.env.REACT_APP_API_URL}/api/user/changepassword/${id}`,
+    { password }
+  );
+  return res.data;
+};

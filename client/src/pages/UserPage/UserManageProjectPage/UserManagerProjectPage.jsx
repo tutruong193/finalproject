@@ -175,18 +175,6 @@ const UserManagerProjectPage = () => {
             ))}
           </Row>
         </div>
-        <div className="container-activity">
-          <h2
-            style={{
-              fontSize: "15px",
-              fontWeight: 600,
-              fontFamily: "Roboto, sans-serif",
-              padding: "20px 0px",
-            }}
-          >
-            Recent
-          </h2>
-        </div>
       </div>
       <Modal
         title="Add a new project"

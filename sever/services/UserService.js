@@ -1,27 +1,23 @@
 const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
 const { generalAccessToken } = require("./JWTService");
+const EmailService = require("./EmailService");
 const createUser = (data) => {
   return new Promise(async (resolve, reject) => {
-    const { name, email, password, role } = data;
+    const { name, email, phone, role } = data;
     try {
       const checkEmail = await User.findOne({ email: email });
-      const checkName = await User.findOne({ name: name });
       if (checkEmail !== null) {
         resolve({
           status: "ERR",
           message: "Email already exists",
         });
-      } else if (checkName !== null) {
-        resolve({
-          status: "ERR",
-          message: "This guy had an account",
-        });
       } else {
         const createdUser = await User.create({
           name,
           email,
-          password: bcrypt.hashSync(password, 10),
+          phone,
+          password: bcrypt.hashSync("123", 10),
           role,
         });
         if (createdUser) {
@@ -41,7 +37,7 @@ const getAllUser = async () => {
   return new Promise(async (resolve, reject) => {
     try {
       const data = await User.find().select(
-        "name email role createdAt updatedAt"
+        "name email phone role createdAt updatedAt"
       );
       resolve({
         status: "OK",
@@ -170,6 +166,114 @@ const loginUser = (data) => {
     }
   });
 };
+const sendVertifyCode = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const user = await User.findById(id);
+      if (user === null) {
+        resolve({
+          status: "ERR",
+          message: "cannot fint user",
+        });
+      }
+      const activationCode = Math.floor(100000 + Math.random() * 900000);
+      user.vertifycode = activationCode;
+      await user.save();
+      const emailResult = await EmailService.sendActivationCodeEmail(
+        "tutagch210167@fpt.edu.vn",
+        activationCode
+      );
+      if (emailResult.status === "OK") {
+        resolve({
+          status: "OK",
+          message: "SUCCESS",
+        });
+      } else {
+        resolve({
+          status: "ERR",
+          message: "Faild to send activation code",
+        });
+      }
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const vertifyUser = (email) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkUser = await User.findOne({ email: email });
+      if (checkUser == null) {
+        resolve({
+          status: "ERR",
+          message: "The user is not defined",
+        });
+      }
+      resolve({
+        status: "OK",
+        message: "SUCCESS",
+        data: checkUser,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const vertifyCode = (id, code) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkUser = await User.findById(id);
+      if (checkUser == null) {
+        resolve({
+          status: "ERR",
+          message: "The user is not defined",
+        });
+      }
+      if (code == checkUser.vertifycode) {
+        checkUser.vertifycode = "";
+        await checkUser.save();
+        resolve({
+          status: "OK",
+          message: "SUCCESS",
+        });
+      } else {
+        resolve({
+          status: "ERR",
+          message: "Code is not correct",
+        });
+      }
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+const changePassword = (id, password) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkUser = await User.findById(id);
+      if (checkUser == null) {
+        resolve({
+          status: "ERR",
+          message: "The user is not defined",
+        });
+      }
+      const salt = await bcrypt.genSalt(10); // Tạo salt với độ dài 10
+      const hashedPassword = await bcrypt.hash(password, salt);
+      checkUser.password = hashedPassword;
+      console.log(id, password);
+      console.log(id, hashedPassword);
+      await checkUser.save();
+      resolve({
+        status: "OK",
+        message: "Password updated successfully",
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 module.exports = {
   createUser,
   getAllUser,
@@ -178,4 +282,8 @@ module.exports = {
   updateUser,
   detailUser,
   loginUser,
+  vertifyUser,
+  sendVertifyCode,
+  vertifyCode,
+  changePassword,
 };

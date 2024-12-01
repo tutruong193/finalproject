@@ -17,8 +17,9 @@ import {
   Select,
 } from "antd";
 import * as UserService from "../../services/UserService";
-import { useNavigate } from "react-router-dom";
 import * as ProjectService from "../../services/ProjectService";
+import { useNavigate } from "react-router-dom";
+
 import * as Message from "../../components/MessageComponent/MessageComponent";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -26,6 +27,18 @@ import avatar from "../../assets/avatar.jpg";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
+const dateFormatOptions = {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+};
+
+const renderDate = (date) => {
+  if (!date) return "N/A";
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate)) return "Invalid Date";
+  return new Intl.DateTimeFormat("en-US", dateFormatOptions).format(parsedDate);
+};
 const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   const navigate = useNavigate();
   const [stateProject, setStateProject] = useState({
@@ -222,11 +235,16 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
           >
             {stateProject?.members?.map((member) => (
               <Avatar
-                key={member.userId}
-                src={member.avatar || avatar}
-                alt={member.name}
-                title={member.name}
-              />
+                style={{
+                  backgroundColor: "#87d068",
+                  cursor: "pointer",
+                }}
+                key={member.value}
+                alt={member.label}
+                title={member.label}
+              >
+                {member.label.charAt(0).toUpperCase()}
+              </Avatar>
             ))}
           </Avatar.Group>,
           <div
@@ -248,12 +266,8 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       >
         <div>
           <div>{stateProject?.description || " "}</div>
-          <div>
-            {dayjs(stateProject?.startDate).local().format("HH:mm DD-MM-YYYY")}
-          </div>
-          <div>
-            {dayjs(stateProject?.endDate).local().format("HH:mm DD-MM-YYYY")}
-          </div>
+          <div>{renderDate(stateProject?.startDate)}</div>
+          <div>{renderDate(stateProject?.endDate)}</div>
         </div>
       </Card>
       <Modal

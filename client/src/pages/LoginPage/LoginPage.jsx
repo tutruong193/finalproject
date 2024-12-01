@@ -28,14 +28,14 @@ const LoginPage = () => {
     if (res?.status === "OK") {
       Message.success("Login successful");
       setCookieAccessToken("access_token", res?.access_token, {
-        path: "/", // Cookie có thể truy cập trên toàn bộ ứng dụng
-        maxAge: 3600, // Thời gian sống của cookie (1 giờ)
-        secure: true, // Chỉ gửi cookie qua HTTPS
-        sameSite: "strict", // Ngăn chặn cookie từ miền khác
+        path: "/",
+        maxAge: 3600,
+        secure: true,
+        sameSite: "strict",
       });
       const user = jwtTranslate(res?.access_token);
       if (user?.role.includes("admin")) {
-        navigate("/system/admin/accounts");
+        navigate("/system/admin/account");
       } else if (!user?.role.includes("admin")) {
         navigate("/system/user/your-work");
       } else {
@@ -69,7 +69,7 @@ const LoginPage = () => {
             }}
           >
             <h5 style={{ color: "black", fontSize: "20px" }}>Welcome Back!</h5>
-            <p style={{ color: "#495057" }}>Sign in to continue to Probic.</p>
+            <p style={{ color: "#495057" }}>Sign in to continue to TaskFlow.</p>
           </div>
           <Form
             name="basic"
@@ -135,7 +135,7 @@ const LoginPage = () => {
               }}
               style={{ textAlign: "center" }} // Căn giữa nội dung
             >
-              <Link to="/forgot-password" style={{ color: "#1890ff" }}>
+              <Link to="/forgotpassword" style={{ color: "#1890ff" }}>
                 Forgot Password?
               </Link>
             </Form.Item>

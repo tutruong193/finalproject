@@ -5,11 +5,36 @@ import ListPage from "../pages/UserPage/ListPage/ListPage";
 import BoardPage from "../pages/UserPage/BoardPage/BoardPage";
 import UserManagerProjectPage from "../pages/UserPage/UserManageProjectPage/UserManagerProjectPage";
 import UserNotificationPage from "../pages/UserPage/UserNotificationPage/UserNotificationPage";
+import ForgotPassword from "../pages/LoginPage/ForgotPassword";
+import ProjectPage from "../pages/Admin/ProjectPage/ProjectPage";
+import ActivityPage from "../pages/Admin/ActivityPage/ActivityPage";
+import DashboadPage from "../pages/Admin/DashboadPage/DashboadPage";
 
 export const routes = [
   {
-    path: "/system/admin/accounts",
+    path: "/system/admin/dashboard",
+    page: DashboadPage,
+    isShowHeader: true,
+    isShowSider: true,
+    requiresAuth: true,
+  },
+  {
+    path: "/system/admin/account",
     page: AccountPage,
+    isShowHeader: true,
+    isShowSider: true,
+    requiresAuth: true,
+  },
+  {
+    path: "/system/admin/activity",
+    page: ActivityPage,
+    isShowHeader: true,
+    isShowSider: true,
+    requiresAuth: true,
+  },
+  {
+    path: "/system/admin/project",
+    page: ProjectPage,
     isShowHeader: true,
     isShowSider: true,
     requiresAuth: true,
@@ -45,6 +70,13 @@ export const routes = [
   {
     path: "/login",
     page: LoginPage,
+    isShowHeader: false,
+    requiresAuth: false,
+    isShowSider: false,
+  },
+  {
+    path: "/forgotpassword",
+    page: ForgotPassword,
     isShowHeader: false,
     requiresAuth: false,
     isShowSider: false,

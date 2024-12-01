@@ -1,14 +1,13 @@
 const UserService = require("../services/UserService");
 const createUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email } = req.body;
     const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
     const isCheckEmail = reg.test(email);
-    if (!email || !password || !name) {
+    if (!email || !name) {
       return res.status(200).json({
         status: "ERR",
         message: "The input is required",
-        data: req.body,
       });
     } else if (!isCheckEmail) {
       return res.status(200).json({
@@ -135,7 +134,84 @@ const logoutUser = async (req, res) => {
     });
   }
 };
-
+const sendVertifyCode = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The id is required",
+      });
+    }
+    const response = await UserService.sendVertifyCode(id);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+const vertifyUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The email is required",
+      });
+    }
+    const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+    const isCheckEmail = reg.test(email);
+    if (!isCheckEmail) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The input is email",
+      });
+    }
+    const response = await UserService.vertifyUser(email);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+const vertifyCode = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const id = req.params.id;
+    if (!code || !id) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The input is required",
+      });
+    }
+    const response = await UserService.vertifyCode(id, code);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+const changePassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const id = req.params.id;
+    if (!password || !id) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The input is required",
+      });
+    }
+    const response = await UserService.changePassword(id, password);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
 module.exports = {
   createUser,
   getAllUser,
@@ -145,4 +221,8 @@ module.exports = {
   updateUser,
   loginUser,
   logoutUser,
+  vertifyUser,
+  sendVertifyCode,
+  vertifyCode,
+  changePassword,
 };

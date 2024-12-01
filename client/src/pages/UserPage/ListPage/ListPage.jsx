@@ -315,7 +315,7 @@ const ListPage = () => {
       </div>
       <div className="task-card-container">
         <TableListView
-          data={tasks?.data || []}
+           data={Array.isArray(tasks?.data) ? tasks.data : []}
           onRowSelectionChange={(selectedKeys) =>
             setSelectedTaskIds(selectedKeys)
           }
@@ -329,7 +329,6 @@ const ListPage = () => {
         options={options}
         itemPriority={itemPriority}
         piorityValue={piorityValue}
-        handleChangePriority={handleChangePriority}
       />
     </div>
   );

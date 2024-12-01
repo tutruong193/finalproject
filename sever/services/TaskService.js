@@ -533,39 +533,4 @@ module.exports = {
   deleteTask,
   deleteSubtask,
 };
-// if (task.status === "completed") {
-//   task.status = "progress";
-//   assignee.status = "progress";
-//   // Kiểm tra và cập nhật tất cả subtasks liên quan nếu có
-//   if (task.subtasks && task.subtasks.length > 0) {
-//     // Tìm tất cả subtasks mà người dùng này tham gia
-//     task.subtasks.forEach((subtask) => {
-//       const subtaskAssignee = subtask.assignees.find(
-//         (a) => a.userId.toString() === userId
-//       );
-//       if (subtaskAssignee) {
-//         // Cập nhật trạng thái của subtask và assignee trong subtask thành "progress"
-//         subtask.status = "progress";
-//         subtaskAssignee.status = "progress";
-//       }
-//     });
-//   }
-// } else {
-//   task.status = "completed";
-//   assignee.status = "completed";
-//   // Kiểm tra và cập nhật tất cả subtasks liên quan nếu có
-//   if (task.subtasks && task.subtasks.length > 0) {
-//     // Tìm tất cả subtasks mà người dùng này tham gia
-//     task.subtasks.forEach((subtask) => {
-//       const subtaskAssignee = subtask.assignees.find(
-//         (a) => a.userId.toString() === userId
-//       );
-//       if (subtaskAssignee) {
-//         // Cập nhật trạng thái của subtask và assignee trong subtask thành "progress"
-//         subtask.status = "completed";
-//         subtaskAssignee.status = "completed";
-//       }
-//     });
-//   }
-// }
-// Kiểm tra xem tất cả tasks trong project đã hoàn thành chưa
+

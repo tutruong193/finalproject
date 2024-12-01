@@ -13,16 +13,12 @@ import {
   Form,
   Checkbox,
   Popconfirm,
+  Radio,
 } from "antd";
 import * as UserService from "../../../services/UserService";
 import { useQuery } from "@tanstack/react-query";
 import * as Message from "../../../components/MessageComponent/MessageComponent";
 const AccountPage = () => {
-  //setup roles
-  const optionsRole = [
-    { label: "Manager", value: "manager" },
-    { label: "Member", value: "member" },
-  ];
   //setup table
   const columns = [
     {
@@ -37,27 +33,26 @@ const AccountPage = () => {
       key: "email",
       render: (email) => highlightText(email, searchValue),
     },
-    // {
-    //   title: "Company",
-    //   dataIndex: "Company",
-    //   key: "Company",
-    // },
+    {
+      title: "Phone",
+      dataIndex: "phone",
+      key: "phone",
+      render: (phone) => (phone ? phone : "None"),
+    },
     {
       title: "Roles",
       key: "roles",
       dataIndex: "roles",
-      render: (roles) => (
-        <span>
-          {roles.map((role) => {
-            let color = role.length > 6 ? "geekblue" : "green"; // Thay đổi màu dựa trên chiều dài của role
-            return (
-              <Tag color={color} key={role}>
-                {role.toUpperCase()} {/* Chuyển đổi role thành chữ hoa */}
-              </Tag>
-            );
-          })}
-        </span>
-      ),
+      render: (role) => {
+        // Xác định màu dựa trên vai trò
+        let color =
+          role === "member" ? "green" : role === "manager" ? "gold" : "default";
+        return (
+          <Tag color={color} key={role}>
+            {role.toUpperCase()} {/* Chuyển đổi role thành chữ hoa */}
+          </Tag>
+        );
+      },
     },
 
     {
@@ -109,12 +104,13 @@ const AccountPage = () => {
   const { data: users } = userQuerry;
   const dataTable =
     users?.data
-      ?.filter((user) => user.role !== "Admin")
+      ?.filter((user) => user.role !== "admin")
       .map((user) => ({
         key: user._id,
         name: user.name,
         email: user.email,
         roles: user.role,
+        phone: user.phone,
         createdAt: new Date(user.createdAt).toLocaleString(),
         updatedAt: new Date(user.updatedAt).toLocaleString(),
       })) || [];
@@ -124,16 +120,16 @@ const AccountPage = () => {
     setIsModalAddUser(true);
   };
   const isFormValid = () => {
-    const { name, email, password, role } = stateAddUser;
-    return name && email && password && role.length > 0;
+    const { name, email, role } = stateAddUser;
+    return name && email && role;
   };
   //add user
   const [form] = Form.useForm();
   const [stateAddUser, setStateAddUser] = useState({
     name: "",
+    phone: "",
     email: "",
-    password: "",
-    role: [],
+    role: "",
   });
   const handleOnChangeAddUser = (e) => {
     setStateAddUser({
@@ -141,10 +137,10 @@ const AccountPage = () => {
       [e.target.name]: e.target.value,
     });
   };
-  const handleOnChangeRole = (checkedValues) => {
+  const handleOnChangeRole = (e) => {
     setStateAddUser({
       ...stateAddUser,
-      role: checkedValues, // Cập nhật role là mảng các giá trị được chọn
+      role: e.target.value, // Cập nhật role là mảng các giá trị được chọn
     });
   };
   const handleAddUser = async () => {
@@ -156,8 +152,8 @@ const AccountPage = () => {
       setStateAddUser({
         name: "",
         email: "",
-        password: "",
-        role: [],
+        phone: "",
+        role: "",
       });
       userQuerry.refetch();
     } else if (res.status === "ERR") {
@@ -205,8 +201,8 @@ const AccountPage = () => {
   const [stateEditUser, setStateEditUser] = useState({
     name: "",
     email: "",
-    password: "",
-    role: [],
+    phone: "",
+    role: "",
   });
   const showModalEditUser = async (id) => {
     setIsModalEditUser(true);
@@ -217,7 +213,7 @@ const AccountPage = () => {
       formEdit.setFieldsValue({
         name: userData.name,
         email: userData.email,
-        password: userData.password, // Bạn có thể quyết định có để trống trường password hay không
+        phone: userData.phone,
         role: userData.role,
       });
     } else {
@@ -231,13 +227,20 @@ const AccountPage = () => {
   const handleEditUser = async () => {
     const updatedUser = {
       ...stateEditUser,
-      ...formEdit.getFieldsValue(), // Lấy giá trị mới từ form
+      ...formEdit.getFieldsValue(),
     };
+    console.log(updatedUser);
     const res = await UserService.updateUser(stateEditUser?._id, updatedUser);
     if (res.status === "OK") {
       Message.success("User updated successfully!");
       formEdit.resetFields();
       setIsModalEditUser(false);
+      setStateEditUser({
+        name: "",
+        email: "",
+        phone: "",
+        role: "",
+      });
       userQuerry.refetch();
     } else {
       Message.error(res.message || "Failed to update user");
@@ -311,6 +314,7 @@ const AccountPage = () => {
             columns={columns}
             rowSelection={rowSelection}
             pagination={{ className: "table-pagination" }}
+            bordered
           />
         </div>
       </div>
@@ -361,38 +365,8 @@ const AccountPage = () => {
           >
             <Input onChange={handleOnChangeAddUser} name="email" />
           </Form.Item>
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[
-              {
-                required: true,
-                message: "Please input your password!",
-              },
-            ]}
-          >
-            <Input.Password onChange={handleOnChangeAddUser} name="password" />
-          </Form.Item>
-          <Form.Item
-            label="Confirm Password"
-            name="confirmPassword"
-            dependencies={["password"]}
-            rules={[
-              {
-                required: true,
-                message: "Please input your password!",
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error("Passwords do not match!"));
-                },
-              }),
-            ]}
-          >
-            <Input.Password />
+          <Form.Item label="Phone Number" name="phone">
+            <Input onChange={handleOnChangeAddUser} name="phone" />
           </Form.Item>
           <Form.Item
             label="Role"
@@ -404,11 +378,10 @@ const AccountPage = () => {
               },
             ]}
           >
-            <Checkbox.Group
-              options={optionsRole}
-              onChange={handleOnChangeRole}
-              name="role"
-            />
+            <Radio.Group onChange={handleOnChangeRole} value={"manager"}>
+              <Radio value={"manager"}>Manager</Radio>
+              <Radio value={"member"}>Member</Radio>
+            </Radio.Group>
           </Form.Item>
         </Form>
       </Modal>
@@ -458,17 +431,8 @@ const AccountPage = () => {
           >
             <Input name="email" />
           </Form.Item>
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[
-              {
-                required: true,
-                message: "Please input your password!",
-              },
-            ]}
-          >
-            <Input.Password name="password" />
+          <Form.Item label="Phone Number" name="phone">
+            <Input name="phone" />
           </Form.Item>
           <Form.Item
             label="Role"
@@ -480,7 +444,10 @@ const AccountPage = () => {
               },
             ]}
           >
-            <Checkbox.Group options={optionsRole} name="role" />
+            <Radio.Group>
+              <Radio value={"manager"}>Manager</Radio>
+              <Radio value={"member"}>Member</Radio>
+            </Radio.Group>
           </Form.Item>
         </Form>
       </Modal>

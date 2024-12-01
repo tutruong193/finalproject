@@ -4,8 +4,7 @@ import { useCookies } from "react-cookie";
 import * as TaskService from "../../../services/TaskService";
 import * as ProjectService from "../../../services/ProjectService";
 import * as UserService from "../../../services/UserService";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import AddPeopleModal from "../../../components/ModalAddPeople/ModelAddPeople";
 import {
   SearchOutlined,
   PlusOutlined,
@@ -23,6 +22,7 @@ import {
   Radio,
   DatePicker,
 } from "antd";
+import ModalAddProject from "../../../components/ModalAddProject/ModalAddProject";
 import Column from "../../../components/Board/Column";
 import { jwtTranslate } from "../../../ultilis";
 const { Title, Text } = Typography;
@@ -327,51 +327,16 @@ const BoardPage = () => {
           </Avatar.Group>
           <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
         </div>
-        <Modal
-          title="Add people"
-          open={isModalAddPeopleOpen}
-          onOk={handleOkAddPeople}
+        <AddPeopleModal
+          isVisible={isModalAddPeopleOpen}
           onCancel={handleCancelAddPeople}
-        >
-          <div>
-            <div>Search by name</div>
-            <Select
-              showSearch
-              allowClear
-              style={{
-                width: 200,
-              }}
-              defaultValue={value}
-              onChange={(value) => setValue(value)}
-              placeholder="E.g. Peter,... "
-              optionFilterProp="label"
-              filterSort={(optionA, optionB) =>
-                (optionA?.label ?? "")
-                  .toLowerCase()
-                  .localeCompare((optionB?.label ?? "").toLowerCase())
-              }
-              options={userList}
-            />
-          </div>
-          <div>
-            <div>Current Members</div>
-            {stateProject.members?.map((member) => (
-              <div
-                key={member.userId}
-                style={{ display: "flex", justifyContent: "space-between" }}
-              >
-                <Text>{member.name}</Text>
-                <Button
-                  type="link"
-                  onClick={() => handleRemoveMember(member.userId)}
-                  danger
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-          </div>
-        </Modal>
+          onAddPeople={handleOkAddPeople}
+          userList={userList}
+          currentMembers={stateProject.members}
+          onChange={setValue}
+          onRemoveMember={handleRemoveMember}
+          value={value}
+        />
         <div className="toolbar-right">
           <Button
             icon={<PlusOutlined />}
@@ -395,71 +360,15 @@ const BoardPage = () => {
           ))}
         </div>
       </DragDropContext>
-      <Modal
-        title="Add New Task"
-        open={isModalVisible}
-        onCancel={handleCancel}
-        footer={null} // Custom footer with form buttons
-      >
-        <Form
-          form={form}
-          onFinish={handleAddTask}
-          layout="vertical"
-          initialValues={{ priority: "high" }}
-        >
-          <Form.Item
-            label="Task Name"
-            name="name"
-            rules={[{ required: true, message: "Please input the task name!" }]}
-          >
-            <Input placeholder="Enter task name" />
-          </Form.Item>
-          <Form.Item label="Description" name="description">
-            <Input placeholder="Enter task name" />
-          </Form.Item>
-          <Form.Item
-            label="Priority"
-            name="priority"
-            rules={[{ required: true, message: "Please select the due date!" }]}
-          >
-            <Radio.Group onChange={handleChangePriority} value={piorityValue}>
-              {itemPriority.map((item) => (
-                <Radio value={item.value}>{item.label}</Radio>
-              ))}
-            </Radio.Group>
-          </Form.Item>
-          <Form.Item
-            label="Members"
-            name="assignees"
-            rules={[
-              { required: true, message: "Please select at least one member!" },
-            ]}
-          >
-            <Select
-              mode="multiple"
-              placeholder="Please select"
-              // onChange={handleChange}
-              style={{
-                width: "100%",
-              }}
-              options={options}
-            />
-          </Form.Item>
-          <Form.Item
-            label="Due Date"
-            name="dueDate"
-            rules={[{ required: true, message: "Please select the due date!" }]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
-              Add Task
-            </Button>
-            <Button onClick={handleCancel}>Cancel</Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+      <ModalAddProject
+        isModalVisible={isModalVisible}
+        handleCancel={handleCancel}
+        handleAddTask={handleAddTask}
+        form={form}
+        options={options}
+        itemPriority={itemPriority}
+        piorityValue={piorityValue}
+      />
     </div>
   );
 };

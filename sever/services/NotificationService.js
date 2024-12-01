@@ -1,30 +1,15 @@
 const Notification = require("../models/NotificationModel");
-
-// Service tạo thông báo
-const createNotification = async (
-  projectId,
-  type,
-  messsage,
-  userId,
-  taskId
-) => {
+const createNotification = async (projectId, usertarget, content) => {
   try {
-    // Tạo thông báo mới
+    // const notificationUsers = usertarget.map((user) => ({
+    //   userId: user.userId,
+    // }));
     const newNotification = new Notification({
       projectId,
-      notifications: [
-        {
-          type: type,
-          message: messsage,
-          recipient: userId,
-          taskId: taskId || null,
-          read: false,
-        },
-      ], // Mảng các thông báo
+      userTarget: usertarget,
+      content,
     });
-
-    // Lưu thông báo vào DB
-    const savedNotification = await newNotification.save();
+    await newNotification.save();
     return {
       status: "OK",
       message: "Notification created successfully",
@@ -37,7 +22,23 @@ const createNotification = async (
     };
   }
 };
-
+const getNotification = async (projectId) => {
+  try {
+    const notification = await Notification.find({ projectId: projectId });
+    return {
+      status: "OK",
+      message: "Notification created successfully",
+      data: notification,
+    };
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    return {
+      status: "ERROR",
+      message: "Error creating notification",
+    };
+  }
+};
 module.exports = {
   createNotification,
+  getNotification,
 };

@@ -14,16 +14,14 @@ const taskSchema = new mongoose.Schema(
       ref: "Project",
       required: true,
     },
-    assignees: [
-      {
-        _id: false,
-        userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        name: { type: String },
+    assignees: {
+      _id: false,
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
-    ],
+      name: { type: String },
+    },
     status: {
       type: String,
       enum: ["todo", "progress", "done"],
@@ -56,16 +54,14 @@ const taskSchema = new mongoose.Schema(
           type: String,
           enum: ["low", "medium", "high"],
         },
-        assignees: [
-          {
-            _id: false,
-            userId: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "User",
-            },
-            name: { type: String },
+        assignees: {
+          _id: false,
+          userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
           },
-        ],
+          name: { type: String },
+        },
       },
     ],
   },

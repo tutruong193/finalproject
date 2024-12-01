@@ -29,6 +29,7 @@ function App() {
     <div className="App">
       <Router>
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
           {routes.map((route) => (
             <Route
               key={route.path}
@@ -44,9 +45,10 @@ function App() {
                   <Fragment>
                     <DefaultComponent
                       style={{
-                        marginLeft: route.isShowSider ? "17%" : "0", 
-                        marginTop: route.isShowHeader ? "60px" : "0", 
-                        backgroundColor: "white"
+                        marginLeft: route.isShowSider ? "17%" : "0",
+                        marginTop: route.isShowHeader ? "60px" : "0",
+                        backgroundColor: "#f2f2f2",
+                        minHeight: "calc(100vh - 60px)"
                       }}
                       showHeader={route.isShowHeader}
                       showSider={route.isShowSider}
