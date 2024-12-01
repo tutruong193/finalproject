@@ -198,7 +198,6 @@ const HeaderComponent = () => {
       </div>
     </div>
   );
-
   return (
     <div className="container-header">
       <div onClick={() => navigate("/system/user/your-work")}>

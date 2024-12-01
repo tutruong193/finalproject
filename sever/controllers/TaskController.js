@@ -2,15 +2,7 @@ const TaskService = require("../services/TaskService");
 const moment = require("moment-timezone");
 const createTask = async (req, res) => {
   try {
-    const {
-      name,
-      projectId,
-      dueDate,
-      assignees, // Thay đổi thành assignees
-      priority,
-      status,
-      description,
-    } = req.body;
+    const { name, projectId, dueDate, assignees, description } = req.body;
 
     // Kiểm tra các giá trị bắt buộc
     if (
@@ -119,16 +111,17 @@ const addSubtask = async (req, res) => {
     });
   }
 };
-const deleteTask = async (req, res) => {
+const deleteTasks = async (req, res) => {
   try {
     const { taskIds } = req.body;
+    console.log(taskIds);
     if (!taskIds) {
       return res.status(400).json({
         status: "ERR",
         message: "TaskID is required",
       });
     }
-    const response = await TaskService.deleteTask(taskIds);
+    const response = await TaskService.deleteTasks(taskIds);
     return res.status(200).json(response);
   } catch (e) {
     console.log(e);
@@ -140,7 +133,7 @@ const deleteTask = async (req, res) => {
 };
 const deleteSubTask = async (req, res) => {
   try {
-    const { taskId, subtaskId } = req.params; //
+    const { taskId, subtaskId } = req.params;
     if (!taskId || !subtaskId) {
       return res.status(400).json({
         status: "ERR",
@@ -200,6 +193,26 @@ const updateStatusTask = async (req, res) => {
     });
   }
 };
+const deleteTask = async (req, res) => {
+  try {
+    const taskId = req.params.id;
+    console.log(taskId);
+    if (!taskId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "TaskID is required",
+      });
+    }
+    const response = await TaskService.deleteTask(taskId);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Something went wrong",
+    });
+  }
+};
 module.exports = {
   createTask,
   getAllTask,
@@ -208,6 +221,7 @@ module.exports = {
   updateStatusTask,
   updateStatusSubtask,
   addSubtask,
+  deleteTasks,
   deleteTask,
   deleteSubTask,
 };

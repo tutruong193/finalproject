@@ -17,12 +17,17 @@ export const createTask = async (data) => {
   return res.data;
 };
 export const deleteTask = async (taskIds) => {
-  console.log(taskIds);
   const res = await axios.delete(
     `${process.env.REACT_APP_API_URL}/api/task/delete/`,
     {
-      data: { taskIds }
+      data: { taskIds },
     }
+  );
+  return res.data;
+};
+export const deleteTaskSingle = async (taskId) => {
+  const res = await axios.delete(
+    `${process.env.REACT_APP_API_URL}/api/task/delete/${taskId}`
   );
   return res.data;
 };

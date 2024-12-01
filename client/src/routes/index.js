@@ -4,7 +4,6 @@ import NotPoundPage from "../pages/NotFoundPage/NotPoundPage";
 import ListPage from "../pages/UserPage/ListPage/ListPage";
 import BoardPage from "../pages/UserPage/BoardPage/BoardPage";
 import UserManagerProjectPage from "../pages/UserPage/UserManageProjectPage/UserManagerProjectPage";
-import UserNotificationPage from "../pages/UserPage/UserNotificationPage/UserNotificationPage";
 import ForgotPassword from "../pages/LoginPage/ForgotPassword";
 import ProjectPage from "../pages/Admin/ProjectPage/ProjectPage";
 import ActivityPage from "../pages/Admin/ActivityPage/ActivityPage";
@@ -56,13 +55,6 @@ export const routes = [
   {
     path: "/system/user/project/board",
     page: BoardPage,
-    isShowHeader: true,
-    requiresAuth: true,
-    isShowSider: true,
-  },
-  {
-    path: "/system/user/notification", // Add this route
-    page: UserNotificationPage,
     isShowHeader: true,
     requiresAuth: true,
     isShowSider: true,

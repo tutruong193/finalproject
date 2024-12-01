@@ -19,7 +19,8 @@ import {
 import * as UserService from "../../services/UserService";
 import * as ProjectService from "../../services/ProjectService";
 import { useNavigate } from "react-router-dom";
-
+import { jwtTranslate } from "../../ultilis";
+import { useCookies } from "react-cookie";
 import * as Message from "../../components/MessageComponent/MessageComponent";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -40,6 +41,11 @@ const renderDate = (date) => {
   return new Intl.DateTimeFormat("en-US", dateFormatOptions).format(parsedDate);
 };
 const ProjectCardComponent = ({ projectId, projectQuerry }) => {
+  const [cookiesAccessToken, setCookieAccessToken, removeCookie] =
+    useCookies("");
+  const infoUser = jwtTranslate(cookiesAccessToken.access_token);
+  const isManager = infoUser?.role === "manager";
+  console.log(isManager)
   const navigate = useNavigate();
   const [stateProject, setStateProject] = useState({
     name: "",
@@ -190,46 +196,48 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       <Card
         title={<div onClick={handleCardClick}>{stateProject?.name}</div>}
         extra={
-          <Popover
-            trigger="click"
-            content={
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <Button
-                  type="text"
-                  icon={<EditOutlined />}
-                  onClick={handleEdit} // Gọi hàm xử lý khi click
-                  style={{
-                    textAlign: "left",
-                    padding: 0,
-                    justifyContent: "flex-start",
-                  }}
-                >
-                  Edit
-                </Button>
-                <Popconfirm
-                  title="Delete the task"
-                  description="Are you sure to delete this task?"
-                  onConfirm={handleDelete}
-                  okText="Yes"
-                  cancelText="No"
-                >
+          isManager && (
+            <Popover
+              trigger="click"
+              content={
+                <div style={{ display: "flex", flexDirection: "column" }}>
                   <Button
                     type="text"
-                    icon={<DeleteOutlined />}
+                    icon={<EditOutlined />}
+                    onClick={handleEdit} // Gọi hàm xử lý khi click
                     style={{
                       textAlign: "left",
                       padding: 0,
                       justifyContent: "flex-start",
                     }}
                   >
-                    Delete
+                    Edit
                   </Button>
-                </Popconfirm>
-              </div>
-            }
-          >
-            <EllipsisOutlined />
-          </Popover>
+                  <Popconfirm
+                    title="Delete the task"
+                    description="Are you sure to delete this task?"
+                    onConfirm={handleDelete}
+                    okText="Yes"
+                    cancelText="No"
+                  >
+                    <Button
+                      type="text"
+                      icon={<DeleteOutlined />}
+                      style={{
+                        textAlign: "left",
+                        padding: 0,
+                        justifyContent: "flex-start",
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </Popconfirm>
+                </div>
+              }
+            >
+              <EllipsisOutlined />
+            </Popover>
+          )
         }
         actions={[
           <Avatar.Group

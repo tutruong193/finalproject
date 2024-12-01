@@ -1,17 +1,5 @@
 const NotificationService = require("../services/NotificationService");
 
-const createNotification = async (req, res) => {
-  try {
-    const {} = req.body;
-    const response = await NotificationService.createNotification();
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(404).json({
-      message: e,
-    });
-  }
-};
 
 const getNotification = async (req, res) => {
   try {
@@ -31,7 +19,7 @@ const getNotification = async (req, res) => {
     });
   }
 };
+
 module.exports = {
-  createNotification,
-  getNotification,
+  getNotification
 };

@@ -1,12 +1,8 @@
 const Notification = require("../models/NotificationModel");
-const createNotification = async (projectId, usertarget, content) => {
+const createNotification = async (projectId, content) => {
   try {
-    // const notificationUsers = usertarget.map((user) => ({
-    //   userId: user.userId,
-    // }));
     const newNotification = new Notification({
       projectId,
-      userTarget: usertarget,
       content,
     });
     await newNotification.save();
@@ -38,6 +34,7 @@ const getNotification = async (projectId) => {
     };
   }
 };
+
 module.exports = {
   createNotification,
   getNotification,

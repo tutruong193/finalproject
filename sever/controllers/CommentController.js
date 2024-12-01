@@ -44,7 +44,7 @@ const createComment = async (req, res) => {
 };
 const deleteComment = async (req, res) => {
   try {
-    const commentId  = req.params.id;
+    const commentId = req.params.id;
     if (!commentId) {
       return res.status(400).json({
         status: "ERR",

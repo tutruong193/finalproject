@@ -7,20 +7,6 @@ const NotificationSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
     },
-    userTarget: [
-      {
-        userId: {
-          type: mongoose.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        name: {
-          type: String,
-          required: true,
-        },
-        _id: false,
-      },
-    ],
     content: {
       type: String,
       required: true,

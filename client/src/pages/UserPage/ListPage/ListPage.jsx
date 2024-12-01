@@ -15,8 +15,13 @@ import ModalAddProject from "../../../components/ModalAddProject/ModalAddProject
 import * as Message from "../../../components/MessageComponent/MessageComponent";
 import TableListView from "../../../components/TableListView/TableListView";
 import AddPeopleModal from "../../../components/ModalAddPeople/ModelAddPeople";
+import { jwtTranslate } from "../../../ultilis";
+import { useCookies } from "react-cookie";
 const { Title, Text } = Typography;
 const ListPage = () => {
+  const [cookiesAccessToken] = useCookies("");
+  const infoUser = jwtTranslate(cookiesAccessToken.access_token);
+  const isManager = infoUser?.role === "manager";
   ///lấy dữ liệu để set name và avatar
   const [userList, setUserList] = useState([]);
   const takeAvatar = (id) => {
@@ -31,70 +36,6 @@ const ListPage = () => {
     const user = userList.find((user) => user._id === id);
     return user ? user.email : null;
   };
-  //setup
-  const [statusValue, setStatusValue] = useState("all"); // giá trị trạng thái đã chọn
-  const [orderValue, setOrderValue] = useState("ascending"); // giá trị thứ tự đã chọn
-  const [piorityValue, setPiorityValue] = useState("high");
-
-  const handleStatusChange = (e) => {
-    setStatusValue(e.target.value); // cập nhật trạng thái chọn
-  };
-  const handleChangePriority = (e) => {
-    console.log("radio checked", e.target.value);
-    setPiorityValue(e.target.value);
-  };
-  const handleOrderChange = (e) => {
-    setOrderValue(e.target.value); // cập nhật thứ tự chọn
-  };
-
-  const handleApply = () => {
-    console.log("Status:", statusValue);
-    console.log("Order:", orderValue);
-  };
-  const itemPriority = [
-    {
-      label: "High",
-      value: "high",
-    },
-    {
-      label: "Medium",
-      value: "medium",
-    },
-    {
-      label: "Low",
-      value: "low",
-    },
-  ];
-
-  const itemThutu = [
-    {
-      label: "ascending",
-      value: "ascending",
-    },
-    {
-      label: "descending",
-      value: "descending",
-    },
-  ];
-
-  const itemStatus = [
-    {
-      label: "All",
-      value: "all",
-    },
-    {
-      label: "Completed",
-      value: "completed",
-    },
-    {
-      label: "Progress",
-      value: "progress",
-    },
-    {
-      label: "Pending",
-      value: "pending",
-    },
-  ];
   //fetch task data and user data
   const fetchTaskAll = async () => {
     const res = await TaskService.getAllTask(projectId);
@@ -173,19 +114,12 @@ const ListPage = () => {
   };
   const handleAddTask = async (values) => {
     try {
-      const assignees = values.assignees.map((userId) => {
-        const member = stateProject.members.find((m) => m.userId === userId);
-        return {
-          userId,
-          name: member.name,
-        };
-      });
       const newTask = {
         name: values.name,
         dueDate: values.dueDate.format("YYYY-MM-DD"),
-        status: values.status,
         projectId: projectId,
-        assignees: assignees, // Gửi danh sách thành viên đã chọn
+        assignees: values.assignees,
+        description: values.description,
       };
       const res = await TaskService.createTask(newTask);
       if (res.status === "OK") {
@@ -227,6 +161,7 @@ const ListPage = () => {
     if (res.status === "OK") {
       Message.success();
       fetchTaskDataAndMemberList();
+      taskQuery.refetch();
     } else {
       Message.error(res.message);
     }
@@ -248,13 +183,38 @@ const ListPage = () => {
       Message.error("An error occurred while deleting tasks.");
     }
   };
+  //search
+  const [searchValue, setSearchValue] = useState("");
+  const handleSearch = (e) => {
+    setSearchValue(e.target.value); // Cập nhật giá trị tìm kiếm theo từng ký tự
+  };
+  const filteredDataTable = tasks?.data?.filter((task) =>
+    task?.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
+  const highlightText = (text, searchValue) => {
+    if (!searchValue) return text;
+    const parts = text.split(new RegExp(`(${searchValue})`, "gi"));
+    return (
+      <>
+        {parts.map((part, index) =>
+          part.toLowerCase() === searchValue.toLowerCase() ? (
+            <span key={index} style={{ backgroundColor: "yellow" }}>
+              {part}
+            </span>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
   return (
     <div className="task-page">
       <div className="task-title">
         <div className="breadcrumb">
           <div>Project</div>
           <div>/</div>
-          <div>ProjectName</div>
+          <div>{stateProject?.name}</div>
         </div>
         <Title level={4} style={{ margin: 0 }}>
           LIST
@@ -266,6 +226,7 @@ const ListPage = () => {
             prefix={<SearchOutlined />}
             placeholder="Search"
             style={{ width: 240 }}
+            onChange={handleSearch}
           />
           <Avatar.Group
             max={{
@@ -302,7 +263,9 @@ const ListPage = () => {
               )
             )}
           </Avatar.Group>
-          <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
+          {isManager && (
+            <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
+          )}
           <AddPeopleModal
             isVisible={isModalAddPeopleOpen}
             onCancel={handleCancelAddPeople}
@@ -317,33 +280,39 @@ const ListPage = () => {
             takeEmail={takeEmail}
           />
         </div>
-        <div className="toolbar-right">
-          <Button
-            icon={<PlusOutlined />}
-            className="action_button"
-            onClick={showModal}
-          >
-            Add
-          </Button>
-          <Button icon={<FilterOutlined />} className="action_button">
-            Filter
-          </Button>
-          <Button
-            icon={<DeleteOutlined />}
-            className="action_button"
-            disabled={selectedTaskIds.length === 0} // Vô hiệu hóa nếu không có task nào được chọn
-            onClick={handleDeleteTasks}
-          >
-            Delete
-          </Button>
-        </div>
+        {isManager && (
+          <div className="toolbar-right">
+            <Button
+              icon={<PlusOutlined />}
+              className="action_button"
+              onClick={showModal}
+            >
+              Add
+            </Button>
+            <Button
+              icon={<DeleteOutlined />}
+              className="action_button"
+              disabled={selectedTaskIds.length === 0} // Vô hiệu hóa nếu không có task nào được chọn
+              onClick={handleDeleteTasks}
+            >
+              Delete
+            </Button>
+          </div>
+        )}
       </div>
       <div className="task-card-container">
         <TableListView
-          data={Array.isArray(tasks?.data) ? tasks.data : []}
+          taskQuery={taskQuery}
+          // data={Array.isArray(tasks?.data) ? tasks.data : []}
+          data={filteredDataTable}
           onRowSelectionChange={(selectedKeys) =>
             setSelectedTaskIds(selectedKeys)
           }
+          takeAvatar={takeAvatar}
+          takeName={takeName}
+          takeEmail={takeEmail}
+          highlightText={highlightText}
+          searchValue={searchValue}
         />
       </div>
       <ModalAddProject
@@ -352,8 +321,6 @@ const ListPage = () => {
         handleAddTask={handleAddTask}
         form={form}
         options={options}
-        itemPriority={itemPriority}
-        piorityValue={piorityValue}
       />
     </div>
   );

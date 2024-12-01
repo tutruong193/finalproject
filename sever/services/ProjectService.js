@@ -56,7 +56,6 @@ const createProject = (data) => {
       if (createdProject) {
         await NotificationService.createNotification(
           createdProject?._id,
-          createdProject?.members,
           `Project ${name} is created successfully`
         );
         return resolve({
@@ -106,6 +105,10 @@ const deleteProject = async (id) => {
           })
         );
       }
+      await NotificationService.createNotification(
+        id,
+        `Project ${project?.name} is deleted successfully`
+      );
       resolve({
         status: "OK",
         message: "Project and related tasks deleted successfully",
@@ -191,6 +194,10 @@ const updateProject = (id, data) => {
       currentProject.status = status;
       const updatedProject = await currentProject.save();
       if (updatedProject) {
+        await NotificationService.createNotification(
+          updatedProject._id,
+          `Project ${updatedProject?.name} is updated at ${updatedProject.updatedAt}`
+        );
         return resolve({
           status: "OK",
           message: "Project updated successfully",
@@ -235,7 +242,11 @@ const addMemberToProject = (id, userId) => {
       // Thêm user vào danh sách members của project
       project.members.push(userId);
       await project.save();
-
+      const user = await User.findById(userId);
+      await NotificationService.createNotification(
+        id,
+        `Manager adding ${user?.name} to project ${project?.name} `
+      );
       return resolve({
         status: "OK",
         message: "User added to project successfully",
@@ -267,8 +278,6 @@ const deleteMemberFromProject = (id, userId) => {
           message: "This project does not exist",
         });
       }
-
-      // Kiểm tra nếu user không phải là thành viên của dự án
       const memberIndex = project.members.findIndex(
         (member) => member.toString() === userId
       );
@@ -279,32 +288,19 @@ const deleteMemberFromProject = (id, userId) => {
         });
       }
 
-      // Xóa user khỏi danh sách members của project
       project.members.splice(memberIndex, 1);
       await project.save();
-
       const tasks = await Task.find({ projectId: id });
-
       for (const task of tasks) {
-        // Xóa user khỏi danh sách assignees trong task
-        const assigneeIndex = task.assignees.findIndex(
-          (assignee) => assignee.userId.toString() === userId
-        );
-        if (assigneeIndex !== -1) {
-          task.assignees.splice(assigneeIndex, 1);
+        if (task.assignees.toString() === userId) {
+          await Task.findByIdAndDelete(task._id);
         }
-        if (task.subtasks && task.subtasks.length > 0) {
-          for (const subtask of task.subtasks) {
-            const subAssigneeIndex = subtask.assignees.findIndex(
-              (assignee) => assignee.userId.toString() === userId
-            );
-            if (subAssigneeIndex !== -1) {
-              subtask.assignees.splice(subAssigneeIndex, 1);
-            }
-          }
-        }
-        await task.save();
       }
+      const user = await User.findById(userId);
+      await NotificationService.createNotification(
+        id,
+        `Manager removing ${user?.name} from project ${project?.name}`
+      );
       return resolve({
         status: "OK",
         message:
@@ -320,19 +316,15 @@ const deleteMemberFromProject = (id, userId) => {
   });
 };
 
-// Hàm kiểm tra các project hết hạn
 const checkProjects = async () => {
   try {
-    const now = new Date(); // Thời gian hiện tại
-
-    // 1. Tìm các project có trạng thái "progress" và kiểm tra xem có hết hạn không
+    const now = new Date();
     const projectsInProgress = await Project.find({
       status: "progress",
     });
 
     for (let project of projectsInProgress) {
       if (project.endDate < now) {
-        // Dự án đã hết hạn, kiểm tra các task liên quan
         const projectTasks = await Task.find({ projectId: project._id });
 
         const allTasksCompleted = projectTasks.every(
@@ -340,35 +332,42 @@ const checkProjects = async () => {
         );
 
         if (allTasksCompleted) {
-          // Nếu tất cả task đã hoàn thành, đổi trạng thái thành "completed"
+          await NotificationService.createNotification(
+            projectsInProgress?._id,
+            `Project ${projectsInProgress?.name} is completed`
+          );
           project.status = "completed";
         } else {
-          // Nếu có task chưa hoàn thành, đổi trạng thái thành "incompleted"
           project.status = "incompleted";
+          await NotificationService.createNotification(
+            projectsInProgress?._id,
+            `Project ${projectsInProgress?.name} is incompleted`
+          );
         }
 
-        await project.save(); // Lưu project sau khi cập nhật trạng thái
+        await project.save();
       }
     }
-
-    // 2. Tìm các project có trạng thái "pending" và kiểm tra nếu cần đổi thành "progress"
     const pendingProjects = await Project.find({
       status: "pending",
     });
 
     for (let project of pendingProjects) {
       if (project.startDate < now && project.endDate > now) {
-        // Nếu thời gian hiện tại nằm giữa startDate và endDate, chuyển thành "progress"
         project.status = "progress";
-        await project.save(); // Lưu project sau khi cập nhật
+        await NotificationService.createNotification(
+          pendingProjects?._id,
+          `Project ${pendingProjects?.name} is stared`
+        );
+        await project.save();
       }
     }
   } catch (error) {
     console.error("Error checking project status:", error);
   }
 };
-// Tự động chạy hàm kiểm tra mỗi phút
-setInterval(checkProjects, 60 * 1000); // 60 * 1000 = 1 phút
+
+setInterval(checkProjects, 60 * 1000);
 module.exports = {
   createProject,
   getAllProject,

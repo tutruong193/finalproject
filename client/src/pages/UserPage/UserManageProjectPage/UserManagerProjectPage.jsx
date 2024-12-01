@@ -18,6 +18,7 @@ const UserManagerProjectPage = () => {
   const [cookiesAccessToken, setCookieAccessToken, removeCookie] =
     useCookies("");
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
+  const isManager = infoUser?.role === "manager";
   // Fetch projects
   const fetchProjectAll = async () => {
     const res = await ProjectService.getAllProject();
@@ -34,9 +35,9 @@ const UserManagerProjectPage = () => {
   const dataProject = projects?.data?.filter(
     (project) =>
       project.managerID === infoUser?.id ||
-      project.members?.some((member) => member.userId === infoUser?.id)
+      project.members?.some((member) => member === infoUser?.id)
   );
-
+  
   // Modal add project
   const [formAddProject] = Form.useForm();
   const [isModalAddProject, setIsModalAddProject] = useState(false);
@@ -51,7 +52,7 @@ const UserManagerProjectPage = () => {
           .filter((user) => user.role.includes("member"))
           .map((user) => ({
             label: user.name,
-            value: user._id, 
+            value: user._id,
           }));
         setUserData(formattedUsers || []);
       } catch (e) {
@@ -153,10 +154,11 @@ const UserManagerProjectPage = () => {
               Recent projects
             </h2>
             <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-              <div className="title-default" onClick={showModalAddProject}>
-                Create a new project
-              </div>
-              <div className="title-default">View all projects</div>
+              {isManager && (
+                <div className="title-default" onClick={showModalAddProject}>
+                  Create a new project
+                </div>
+              )}
             </div>
           </div>
           <Row className="projects" gutter={[16, 16]}>

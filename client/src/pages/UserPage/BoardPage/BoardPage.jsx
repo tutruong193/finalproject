@@ -41,25 +41,6 @@ const BoardPage = () => {
     const user = userList.find((user) => user._id === id);
     return user ? user.email : null;
   };
-  const [piorityValue, setPiorityValue] = useState("high");
-  const handleChangePriority = (e) => {
-    console.log("radio checked", e.target.value);
-    setPiorityValue(e.target.value);
-  };
-  const itemPriority = [
-    {
-      label: "High",
-      value: "high",
-    },
-    {
-      label: "Medium",
-      value: "medium",
-    },
-    {
-      label: "Low",
-      value: "low",
-    },
-  ];
   const projectId = localStorage.getItem("projectId");
   const [columns, setColumns] = useState({
     todo: { name: "TO DO", count: 1, items: [] },
@@ -70,6 +51,7 @@ const BoardPage = () => {
   const [userData, setUserData] = useState([]);
   const [cookiesAccessToken] = useCookies("");
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
+  const isManager = infoUser?.role === "manager";
   const fetchAllData = async () => {
     try {
       const [projectRes, userRes, taskRes] = await Promise.all([
@@ -271,19 +253,12 @@ const BoardPage = () => {
   };
   const handleAddTask = async (values) => {
     try {
-      const assignees = values.assignees.map((userId) => {
-        const member = stateProject.members.find((m) => m.userId === userId);
-        return {
-          userId,
-          name: member.name,
-        };
-      });
       const newTask = {
         name: values.name,
         dueDate: values.dueDate.format("YYYY-MM-DD"),
-        status: values.status,
         projectId: projectId,
-        assignees: assignees, // Gửi danh sách thành viên đã chọn
+        assignees: values.assignees,
+        description: values.description,
       };
       const res = await TaskService.createTask(newTask);
       if (res.status === "OK") {
@@ -304,7 +279,7 @@ const BoardPage = () => {
         <div className="breadcrumb">
           <span>Projects</span>
           <span>/</span>
-          <span>tu</span>
+          <span>{stateProject?.name}</span>
         </div>
         <div>
           <Title level={4} style={{ margin: 0 }}>
@@ -314,11 +289,7 @@ const BoardPage = () => {
       </div>
       <div className="toolbar">
         <div className="toolbar-left">
-          <Input
-            prefix={<SearchOutlined />}
-            placeholder="Search"
-            style={{ width: 240 }}
-          />
+          <div>Members: </div>
           <Avatar.Group
             max={{
               count: 2,
@@ -354,7 +325,9 @@ const BoardPage = () => {
               )
             )}
           </Avatar.Group>
-          <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
+          {isManager && (
+            <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
+          )}
         </div>
         <AddPeopleModal
           isVisible={isModalAddPeopleOpen}
@@ -370,14 +343,15 @@ const BoardPage = () => {
           takeEmail={takeEmail}
         />
         <div className="toolbar-right">
-          <Button
-            icon={<PlusOutlined />}
-            className="action_button"
-            onClick={showModal}
-          >
-            Add
-          </Button>
-          <Button icon={<SettingOutlined />}>View settings</Button>
+          {isManager && (
+            <Button
+              icon={<PlusOutlined />}
+              className="action_button"
+              onClick={showModal}
+            >
+              Add
+            </Button>
+          )}
         </div>
       </div>
       <DragDropContext onDragEnd={onDragEnd}>
@@ -398,8 +372,6 @@ const BoardPage = () => {
         handleAddTask={handleAddTask}
         form={form}
         options={options}
-        itemPriority={itemPriority}
-        piorityValue={piorityValue}
       />
     </div>
   );

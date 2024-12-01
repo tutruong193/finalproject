@@ -21,9 +21,7 @@ const renderDate = (date) => {
   if (!date) return "N/A";
   const parsedDate = new Date(date);
   if (isNaN(parsedDate)) return "Invalid Date";
-  return new Intl.DateTimeFormat("en-US", dateFormatOptions).format(
-    parsedDate
-  );
+  return new Intl.DateTimeFormat("en-US", dateFormatOptions).format(parsedDate);
 };
 const ActivityPage = () => {
   const [selectedProject, setSelectedProject] = useState(null);
@@ -32,7 +30,9 @@ const ActivityPage = () => {
   console.log(notifications);
   const fetchNotifications = async (projectId) => {
     try {
-      const res = await NotificationService.getAllNotification(projectId);
+      const res = await NotificationService.getAllNotificationByIdProject(
+        projectId
+      );
       if (res.status === "OK" && res.data) {
         setNotifications((prevNotifications) => ({
           ...prevNotifications,

@@ -15,21 +15,13 @@ const taskSchema = new mongoose.Schema(
       required: true,
     },
     assignees: {
-      _id: false,
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-      name: { type: String },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     status: {
       type: String,
       enum: ["todo", "progress", "done"],
       default: "todo",
-    },
-    priority: {
-      type: String,
-      enum: ["low", "medium", "high"],
     },
     dueDate: {
       type: Date,
@@ -50,17 +42,9 @@ const taskSchema = new mongoose.Schema(
           type: Date,
           required: true,
         },
-        priority: {
-          type: String,
-          enum: ["low", "medium", "high"],
-        },
         assignees: {
-          _id: false,
-          userId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-          },
-          name: { type: String },
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
         },
       },
     ],

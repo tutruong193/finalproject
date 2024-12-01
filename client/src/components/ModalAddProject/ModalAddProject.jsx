@@ -98,7 +98,6 @@ const AddProjectModal = ({
           ]}
         >
           <Select
-            mode="multiple"
             placeholder="Select team members"
             style={{ width: "100%" }}
             options={options}
