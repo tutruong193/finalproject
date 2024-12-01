@@ -27,6 +27,20 @@ import Column from "../../../components/Board/Column";
 import { jwtTranslate } from "../../../ultilis";
 const { Title, Text } = Typography;
 const BoardPage = () => {
+  ///lấy dữ liệu để set name và avatar
+  const [userList, setUserList] = useState([]);
+  const takeAvatar = (id) => {
+    const user = userList.find((user) => user._id === id);
+    return user ? user.avatar : null;
+  };
+  const takeName = (id) => {
+    const user = userList.find((user) => user._id === id);
+    return user ? user.name : null;
+  };
+  const takeEmail = (id) => {
+    const user = userList.find((user) => user._id === id);
+    return user ? user.email : null;
+  };
   const [piorityValue, setPiorityValue] = useState("high");
   const handleChangePriority = (e) => {
     console.log("radio checked", e.target.value);
@@ -53,7 +67,7 @@ const BoardPage = () => {
     done: { name: "DONE", count: 3, items: [] },
   });
   const [stateProject, setStateProject] = useState([]);
-  const [userList, setUserList] = useState([]);
+  const [userData, setUserData] = useState([]);
   const [cookiesAccessToken] = useCookies("");
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
   const fetchAllData = async () => {
@@ -82,7 +96,10 @@ const BoardPage = () => {
             value: user._id,
           }));
 
-        setUserList(filteredUserList);
+        setUserData(filteredUserList);
+        setUserList(
+          userRes?.data?.filter((user) => !user.role.includes("admin"))
+        );
       } else {
         console.error("Error fetching project details");
       }
@@ -207,8 +224,8 @@ const BoardPage = () => {
     // Sử dụng members thay vì membersID
     for (let i = 0; i < stateProject.members.length; i++) {
       options.push({
-        value: stateProject.members[i].userId, // ID thành viên
-        label: stateProject.members[i].name, // Tên thành viên
+        value: stateProject.members[i], // ID thành viên
+        label: takeName(stateProject.members[i]), // Tên thành viên
       });
     }
   }
@@ -311,19 +328,31 @@ const BoardPage = () => {
               },
             }}
           >
-            {options.map((member) => (
-              <Avatar
-                style={{
-                  backgroundColor: "#87d068",
-                  cursor: "pointer",
-                }}
-                key={member.value}
-                alt={member.label}
-                title={member.label}
-              >
-                {member.label.charAt(0).toUpperCase()}
-              </Avatar>
-            ))}
+            {options.map((member) =>
+              takeAvatar(member?.value) ? (
+                <Avatar
+                  key={member?.value}
+                  src={takeAvatar(member?.value)} // Hiển thị avatar từ URL
+                  alt={takeName(member?.value)}
+                  title={takeName(member?.value)}
+                  style={{
+                    cursor: "pointer",
+                  }}
+                />
+              ) : (
+                <Avatar
+                  key={member?.value}
+                  style={{
+                    backgroundColor: "#87d068",
+                    cursor: "pointer",
+                  }}
+                  alt={takeName(member?.value)}
+                  title={takeName(member?.value)}
+                >
+                  {takeName(member?.value)?.charAt(0).toUpperCase()}
+                </Avatar>
+              )
+            )}
           </Avatar.Group>
           <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
         </div>
@@ -331,11 +360,14 @@ const BoardPage = () => {
           isVisible={isModalAddPeopleOpen}
           onCancel={handleCancelAddPeople}
           onAddPeople={handleOkAddPeople}
-          userList={userList}
+          userData={userData}
           currentMembers={stateProject.members}
           onChange={setValue}
           onRemoveMember={handleRemoveMember}
           value={value}
+          takeAvatar={takeAvatar}
+          takeName={takeName}
+          takeEmail={takeEmail}
         />
         <div className="toolbar-right">
           <Button

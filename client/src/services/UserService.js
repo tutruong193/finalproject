@@ -78,10 +78,10 @@ export const vertifyUser = async (email) => {
   );
   return res.data;
 };
-export const changePassword = async (id, password) => {
+export const changePassword = async (id, password, request) => {
   const res = await axios.put(
     `${process.env.REACT_APP_API_URL}/api/user/changepassword/${id}`,
-    { password }
+    { password, request }
   );
   return res.data;
 };

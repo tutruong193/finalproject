@@ -37,7 +37,7 @@ const getAllUser = async () => {
   return new Promise(async (resolve, reject) => {
     try {
       const data = await User.find().select(
-        "name email phone role createdAt updatedAt"
+        "name email phone role avatar createdAt updatedAt"
       );
       resolve({
         status: "OK",
@@ -249,7 +249,7 @@ const vertifyCode = (id, code) => {
     }
   });
 };
-const changePassword = (id, password) => {
+const changePassword = (id, password, request) => {
   return new Promise(async (resolve, reject) => {
     try {
       const checkUser = await User.findById(id);
@@ -259,16 +259,35 @@ const changePassword = (id, password) => {
           message: "The user is not defined",
         });
       }
-      const salt = await bcrypt.genSalt(10); // Tạo salt với độ dài 10
-      const hashedPassword = await bcrypt.hash(password, salt);
-      checkUser.password = hashedPassword;
-      console.log(id, password);
-      console.log(id, hashedPassword);
-      await checkUser.save();
-      resolve({
-        status: "OK",
-        message: "Password updated successfully",
-      });
+      if (request === "forget") {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        checkUser.password = hashedPassword;
+        await checkUser.save();
+        resolve({
+          status: "OK",
+          message: "Password updated successfully",
+        });
+      } else {
+        const isPasswordValid = await bcrypt.compare(
+          request,
+          checkUser.password
+        );
+        if (!isPasswordValid) {
+          return resolve({
+            status: "ERR",
+            message: "The password is not correct",
+          });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        checkUser.password = hashedPassword;
+        await checkUser.save();
+        resolve({
+          status: "OK",
+          message: "Password updated successfully",
+        });
+      }
     } catch (e) {
       reject(e);
     }

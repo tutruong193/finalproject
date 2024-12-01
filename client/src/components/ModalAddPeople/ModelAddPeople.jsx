@@ -8,11 +8,14 @@ const AddPeopleModal = ({
   isVisible,
   onCancel,
   onAddPeople,
-  userList,
+  userData,
   currentMembers,
   onChange,
   onRemoveMember,
   value,
+  takeName,
+  takeAvatar,
+  takeEmail,
 }) => {
   return (
     <Modal
@@ -28,25 +31,25 @@ const AddPeopleModal = ({
         <Button key="cancel" onClick={onCancel}>
           Cancel
         </Button>,
-        <Button 
-          key="add" 
-          type="primary" 
-          icon={<PlusOutlined />} 
+        <Button
+          key="add"
+          type="primary"
+          icon={<PlusOutlined />}
           onClick={onAddPeople}
         >
           Add Member
-        </Button>
+        </Button>,
       ]}
     >
       <div style={{ padding: "0 10px" }}>
         <div style={{ marginBottom: "20px" }}>
           <Text strong>Search and Add Members</Text>
-          <div 
-            style={{ 
-              display: "flex", 
-              gap: "10px", 
-              alignItems: "center", 
-              marginTop: "10px" 
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              marginTop: "10px",
             }}
           >
             <Select
@@ -64,7 +67,7 @@ const AddPeopleModal = ({
                   .toLowerCase()
                   .localeCompare((optionB?.label ?? "").toLowerCase())
               }
-              options={userList}
+              options={userData}
             />
           </div>
         </div>
@@ -79,39 +82,55 @@ const AddPeopleModal = ({
                 <List.Item
                   actions={[
                     <Tooltip title="Remove member" key="remove">
-                      <Button 
-                        type="text" 
-                        danger 
+                      <Button
+                        type="text"
+                        danger
                         icon={<DeleteOutlined />}
-                        onClick={() => onRemoveMember(member.userId)}
+                        onClick={() => onRemoveMember(member)}
                       >
                         Remove
                       </Button>
-                    </Tooltip>
+                    </Tooltip>,
                   ]}
                 >
                   <List.Item.Meta
                     avatar={
-                      <Avatar 
-                        icon={<UserOutlined />} 
-                        style={{ 
-                          backgroundColor: "#87d068",
-                          verticalAlign: 'middle' 
-                        }} 
-                      />
+                      takeAvatar(member) ? (
+                        <Avatar
+                          key={member}
+                          src={takeAvatar(member)} // Hiển thị avatar từ URL
+                          alt={takeName(member)}
+                          title={takeName(member)}
+                          style={{
+                            cursor: "pointer",
+                          }}
+                        />
+                      ) : (
+                        <Avatar
+                          key={member}
+                          style={{
+                            backgroundColor: "#87d068",
+                            cursor: "pointer",
+                          }}
+                          alt={takeName(member)}
+                          title={takeName(member)}
+                        >
+                          {takeName(member)?.charAt(0).toUpperCase()}
+                        </Avatar>
+                      )
                     }
-                    title={<Text>{member.name}</Text>}
-                    description={member.email || "No email"}
+                    title={<Text>{takeName(member)}</Text>}
+                    description={takeEmail(member) || "No email"}
                   />
                 </List.Item>
               )}
             />
           ) : (
-            <div 
-              style={{ 
-                textAlign: "center", 
-                color: "#999", 
-                padding: "20px 0" 
+            <div
+              style={{
+                textAlign: "center",
+                color: "#999",
+                padding: "20px 0",
               }}
             >
               No members added yet

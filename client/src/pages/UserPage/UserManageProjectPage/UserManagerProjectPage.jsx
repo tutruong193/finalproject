@@ -51,7 +51,7 @@ const UserManagerProjectPage = () => {
           .filter((user) => user.role.includes("member"))
           .map((user) => ({
             label: user.name,
-            value: user._id, // Value displayed in AutoComplete
+            value: user._id, 
           }));
         setUserData(formattedUsers || []);
       } catch (e) {
@@ -76,13 +76,9 @@ const UserManagerProjectPage = () => {
     });
   };
   const handleChangeSelectMember = (value) => {
-    const selectedMembers = value.map((userId) => {
-      const selectedUser = userData.find((user) => user.value === userId);
-      return { userId, name: selectedUser.label }; // Lưu cả userId và name
-    });
     setStateAddProject((prevState) => ({
-      ...prevState,
-      members: selectedMembers, // Cập nhật danh sách thành viên với userId và name
+      ...stateAddProject,
+      members: value,
     }));
   };
   const onChangeDate = (name, date) => {
@@ -111,10 +107,9 @@ const UserManagerProjectPage = () => {
       startDate: "",
       endDate: "",
       managerID: infoUser?.id,
-      memberIDs: [],
+      members: [],
     });
     formAddProject.resetFields();
-    projectQuerry.refetch();
   };
   const handleAddProject = async () => {
     try {
@@ -128,7 +123,7 @@ const UserManagerProjectPage = () => {
           startDate: "",
           endDate: "",
           managerID: infoUser?.id,
-          memberIDs: [],
+          members: [],
         });
         projectQuerry.refetch();
         formAddProject.resetFields();
@@ -249,8 +244,7 @@ const UserManagerProjectPage = () => {
               }}
             />
           </Form.Item>
-          {/* Add Members Section */}
-          <Form.Item label="Members">
+          <Form.Item label="Members" name="members">
             <Select
               mode="multiple"
               placeholder="Please select"

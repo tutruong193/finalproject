@@ -196,15 +196,15 @@ const vertifyCode = async (req, res) => {
 };
 const changePassword = async (req, res) => {
   try {
-    const { password } = req.body;
+    const { password, request } = req.body;
     const id = req.params.id;
-    if (!password || !id) {
+    if (!password || !id || !request) {
       return res.status(200).json({
         status: "ERR",
         message: "The input is required",
       });
     }
-    const response = await UserService.changePassword(id, password);
+    const response = await UserService.changePassword(id, password, request);
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({

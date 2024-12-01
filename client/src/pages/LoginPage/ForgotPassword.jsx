@@ -267,7 +267,8 @@ const ForgotPassword = () => {
           }
           const resetResponse = await UserService.changePassword(
             stateUser?._id,
-            newPassword
+            newPassword,
+            "forget"
           );
           console.log(resetResponse);
           if (resetResponse.status === "OK") {

@@ -49,6 +49,16 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
     status: "",
     members: [],
   });
+  //lấy dữ liệu để set name và avatar
+  const [userList, setUserList] = useState([]);
+  const takAvatar = (id) => {
+    const user = userList.find((user) => user._id === id);
+    return user ? user.avatar : null;
+  };
+  const takName = (id) => {
+    const user = userList.find((user) => user._id === id);
+    return user ? user.name : null;
+  };
   const [userData, setUserData] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState();
   useEffect(() => {
@@ -61,13 +71,7 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
         ]);
         // Xử lý kết quả của project
         if (projectRes.status === "OK") {
-          setStateProject({
-            ...projectRes.data,
-            members: projectRes.data?.members?.map((user) => ({
-              label: user.name,
-              value: user.userId,
-            })),
-          });
+          setStateProject(projectRes.data);
           setSelectedMembers(projectRes.data.members);
         } else {
           console.error("Error fetching project details");
@@ -78,9 +82,12 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
             .filter((user) => user.role.includes("member"))
             .map((user) => ({
               label: user.name,
-              value: user._id, // Value hiển thị trong AutoComplete
+              value: user._id,
             }));
           setUserData(formattedUsers || []);
+          setUserList(
+            userRes?.data?.filter((user) => !user.role.includes("admin"))
+          );
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -90,6 +97,7 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
     localStorage.removeItem("manage_project_info");
     localStorage.removeItem("projectId");
   }, [projectId]);
+
   const tags = [
     {
       status: "pending",
@@ -233,19 +241,31 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
               },
             }}
           >
-            {stateProject?.members?.map((member) => (
-              <Avatar
-                style={{
-                  backgroundColor: "#87d068",
-                  cursor: "pointer",
-                }}
-                key={member.value}
-                alt={member.label}
-                title={member.label}
-              >
-                {member.label.charAt(0).toUpperCase()}
-              </Avatar>
-            ))}
+            {stateProject?.members?.map((member) =>
+              takAvatar(member) ? (
+                <Avatar
+                  key={member}
+                  src={takAvatar(member)} // Hiển thị avatar từ URL
+                  alt={takName(member)}
+                  title={takName(member)}
+                  style={{
+                    cursor: "pointer",
+                  }}
+                />
+              ) : (
+                <Avatar
+                  key={member}
+                  style={{
+                    backgroundColor: "#87d068",
+                    cursor: "pointer",
+                  }}
+                  alt={takName(member)}
+                  title={takName(member)}
+                >
+                  {takName(member)?.charAt(0).toUpperCase()}
+                </Avatar>
+              )
+            )}
           </Avatar.Group>,
           <div
             style={{

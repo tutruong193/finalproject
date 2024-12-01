@@ -30,16 +30,15 @@ const createProject = (data) => {
         });
       }
       const validMembers = await Promise.all(
-        members.map(async (member) => {
-          const user = await User.findById(member.userId);
+        members.map(async (memberId) => {
+          const user = await User.findById(memberId);
           if (user && user.role.includes("member")) {
-            return { userId: member.userId, name: user.name, role: user.role };
-          } else {
-            return null;
+            return user._id;
           }
+          return null;
         })
       );
-      if (validMembers.includes(null)) {
+      if (validMembers.some((member) => member === null)) {
         return resolve({
           status: "ERR",
           message: "One or more members are invalid or have an incorrect role",
@@ -54,7 +53,6 @@ const createProject = (data) => {
         endDate,
         status,
       });
-      // Nếu tạo thành công, trả về kết quả
       if (createdProject) {
         await NotificationService.createNotification(
           createdProject?._id,
@@ -68,7 +66,6 @@ const createProject = (data) => {
         });
       }
     } catch (e) {
-      // Trả về lỗi nếu có ngoại lệ xảy ra
       return reject({
         status: "ERR",
         message: "An error occurred during project creation",
@@ -236,10 +233,7 @@ const addMemberToProject = (id, userId) => {
         });
       }
       // Thêm user vào danh sách members của project
-      project.members.push({
-        userId: userId,
-        name: checkUser.name, // Lưu tên của người dùng
-      });
+      project.members.push(userId);
       await project.save();
 
       return resolve({
@@ -276,7 +270,7 @@ const deleteMemberFromProject = (id, userId) => {
 
       // Kiểm tra nếu user không phải là thành viên của dự án
       const memberIndex = project.members.findIndex(
-        (member) => member.userId.toString() === userId
+        (member) => member.toString() === userId
       );
       if (memberIndex === -1) {
         return resolve({

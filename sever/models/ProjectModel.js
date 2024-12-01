@@ -7,13 +7,9 @@ const projectSchema = new mongoose.Schema(
     managerID: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     members: [
       {
-        userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        name: { type: String, required: true },
-        _id: false,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
       },
     ],
     startDate: { type: Date },

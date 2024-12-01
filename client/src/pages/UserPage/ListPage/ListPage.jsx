@@ -5,13 +5,7 @@ import {
   FilterOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import {
-  Input,
-  Button,
-  Form,
-  Avatar,
-  Typography,
-} from "antd";
+import { Input, Button, Form, Avatar, Typography } from "antd";
 import { useLocation } from "react-router-dom";
 import * as TaskService from "../../../services/TaskService";
 import * as ProjectService from "../../../services/ProjectService";
@@ -23,6 +17,20 @@ import TableListView from "../../../components/TableListView/TableListView";
 import AddPeopleModal from "../../../components/ModalAddPeople/ModelAddPeople";
 const { Title, Text } = Typography;
 const ListPage = () => {
+  ///lấy dữ liệu để set name và avatar
+  const [userList, setUserList] = useState([]);
+  const takeAvatar = (id) => {
+    const user = userList.find((user) => user._id === id);
+    return user ? user.avatar : null;
+  };
+  const takeName = (id) => {
+    const user = userList.find((user) => user._id === id);
+    return user ? user.name : null;
+  };
+  const takeEmail = (id) => {
+    const user = userList.find((user) => user._id === id);
+    return user ? user.email : null;
+  };
   //setup
   const [statusValue, setStatusValue] = useState("all"); // giá trị trạng thái đã chọn
   const [orderValue, setOrderValue] = useState("ascending"); // giá trị thứ tự đã chọn
@@ -100,7 +108,7 @@ const ListPage = () => {
   });
   const { data: tasks } = taskQuery;
   const [stateProject, setStateProject] = useState([]);
-  const [userList, setUserList] = useState([]);
+  const [userData, setUserData] = useState([]);
   const projectId = localStorage.getItem("projectId");
   const fetchTaskDataAndMemberList = async () => {
     try {
@@ -126,8 +134,10 @@ const ListPage = () => {
             label: user.name,
             value: user._id,
           }));
-
-        setUserList(filteredUserList);
+        setUserData(filteredUserList);
+        setUserList(
+          userRes?.data?.filter((user) => !user.role.includes("admin"))
+        );
       } else {
         console.error("Error fetching project details");
       }
@@ -135,7 +145,7 @@ const ListPage = () => {
       console.error("Error fetching data:", error);
     }
   };
-  console.log(userList);
+  console.log(userData);
   useEffect(() => {
     fetchTaskDataAndMemberList();
   }, [projectId]);
@@ -145,8 +155,8 @@ const ListPage = () => {
     // Sử dụng members thay vì membersID
     for (let i = 0; i < stateProject.members.length; i++) {
       options.push({
-        value: stateProject.members[i].userId, // ID thành viên
-        label: stateProject.members[i].name, // Tên thành viên
+        value: stateProject.members[i], // ID thành viên
+        label: takeName(stateProject.members[i]),
       });
     }
   }
@@ -229,7 +239,7 @@ const ListPage = () => {
       if (res.status === "OK") {
         Message.success("Tasks deleted successfully!");
         taskQuery.refetch();
-        setSelectedTaskIds([]); 
+        setSelectedTaskIds([]);
       } else {
         Message.error(res.message);
       }
@@ -266,30 +276,45 @@ const ListPage = () => {
               },
             }}
           >
-            {options.map((member) => (
-              <Avatar
-                style={{
-                  backgroundColor: "#87d068",
-                  cursor: "pointer",
-                }}
-                key={member.value}
-                alt={member.label}
-                title={member.label}
-              >
-                {member.label.charAt(0).toUpperCase()}
-              </Avatar>
-            ))}
+            {options.map((member) =>
+              takeAvatar(member?.value) ? (
+                <Avatar
+                  key={member?.value}
+                  src={takeAvatar(member?.value)} // Hiển thị avatar từ URL
+                  alt={takeName(member?.value)}
+                  title={takeName(member?.value)}
+                  style={{
+                    cursor: "pointer",
+                  }}
+                />
+              ) : (
+                <Avatar
+                  key={member?.value}
+                  style={{
+                    backgroundColor: "#87d068",
+                    cursor: "pointer",
+                  }}
+                  alt={takeName(member?.value)}
+                  title={takeName(member?.value)}
+                >
+                  {takeName(member?.value)?.charAt(0).toUpperCase()}
+                </Avatar>
+              )
+            )}
           </Avatar.Group>
           <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
           <AddPeopleModal
             isVisible={isModalAddPeopleOpen}
             onCancel={handleCancelAddPeople}
             onAddPeople={handleOkAddPeople}
-            userList={userList}
+            userData={userData}
             currentMembers={stateProject.members}
             onChange={setValue}
             onRemoveMember={handleRemoveMember}
             value={value}
+            takeAvatar={takeAvatar}
+            takeName={takeName}
+            takeEmail={takeEmail}
           />
         </div>
         <div className="toolbar-right">
@@ -315,7 +340,7 @@ const ListPage = () => {
       </div>
       <div className="task-card-container">
         <TableListView
-           data={Array.isArray(tasks?.data) ? tasks.data : []}
+          data={Array.isArray(tasks?.data) ? tasks.data : []}
           onRowSelectionChange={(selectedKeys) =>
             setSelectedTaskIds(selectedKeys)
           }
