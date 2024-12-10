@@ -28,10 +28,7 @@ const createComment = (author, content, taskId) => {
 
       // Tạo và lưu bình luận mới
       const newComment = new Comment({
-        author: {
-          userId: author,
-          userName: findUser.name,
-        },
+        author: author,
         content: content,
         taskId: taskId,
       });

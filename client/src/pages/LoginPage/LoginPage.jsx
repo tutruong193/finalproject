@@ -35,7 +35,7 @@ const LoginPage = () => {
       });
       const user = jwtTranslate(res?.access_token);
       if (user?.role.includes("admin")) {
-        navigate("/system/admin/account");
+        navigate("/system/admin/dashboard");
       } else if (!user?.role.includes("admin")) {
         navigate("/system/user/your-work");
       } else {
@@ -47,43 +47,22 @@ const LoginPage = () => {
   };
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <div className="container-login">
-        <div className="body-login">
-          <LogoComponent style={{ border: "none" }} />
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: "10px 0px 20px 0px ",
-            }}
-          >
-            <h5 style={{ color: "black", fontSize: "20px" }}>Welcome Back!</h5>
-            <p style={{ color: "#495057" }}>Sign in to continue to TaskFlow.</p>
+    <div className="login-page-container">
+      <div className="login-card">
+        <div className="login-content">
+          <LogoComponent className="login-logo" />
+
+          <div className="login-header">
+            <h5>Welcome Back!</h5>
+            <p>Sign in to continue to TaskFlow</p>
           </div>
+
           <Form
-            name="basic"
-            labelCol={{
-              span: 24, // Label chiếm toàn bộ chiều rộng
-            }}
-            wrapperCol={{
-              span: 24,
-            }}
-            style={{
-              maxWidth: 400, // Đặt maxWidth nhỏ hơn để dễ căn giữa
-            }}
-            onFinish={handleLogin} // Xử lý khi submit form
+            name="login-form"
+            layout="vertical"
+            onFinish={handleLogin}
             autoComplete="off"
+            className="login-form"
           >
             <Form.Item
               label="Username"
@@ -94,7 +73,6 @@ const LoginPage = () => {
                   message: "Please input your username!",
                 },
               ]}
-              style={{ marginBottom: "10px" }}
             >
               <Input onChange={handleOnChangeEmail} />
             </Form.Item>
@@ -108,34 +86,23 @@ const LoginPage = () => {
                   message: "Please input your password!",
                 },
               ]}
-              style={{ marginBottom: "50px" }}
             >
               <Input.Password onChange={handleOnChangePassword} />
             </Form.Item>
 
-            <Form.Item
-              wrapperCol={{
-                span: 24,
-              }}
-              style={{ textAlign: "center", marginBottom: "10px" }}
-            >
+            <Form.Item className="login-button-container">
               <Button
                 type="primary"
                 htmlType="submit"
-                style={{ width: "50%" }}
-                disabled={!email || !password} // Disable khi email hoặc password rỗng
+                className="login-button"
+                disabled={!email || !password}
               >
                 Login
               </Button>
             </Form.Item>
 
-            <Form.Item
-              wrapperCol={{
-                span: 24,
-              }}
-              style={{ textAlign: "center" }} // Căn giữa nội dung
-            >
-              <Link to="/forgotpassword" style={{ color: "#1890ff" }}>
+            <Form.Item className="forgot-password-button">
+              <Link to="/forgotpassword" className="forgot-password-link">
                 Forgot Password?
               </Link>
             </Form.Item>

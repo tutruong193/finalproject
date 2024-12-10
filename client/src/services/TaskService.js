@@ -50,13 +50,6 @@ export const getDetailTask = async (taskId) => {
   );
   return res.data;
 };
-export const updateTask = async (taskId, data, subtasks) => {
-  const res = await axios.put(
-    `${process.env.REACT_APP_API_URL}/api/task/update/${taskId}`,
-    { ...data, subtasks }
-  );
-  return res.data;
-};
 export const updateStatusSubtask = async (
   taskId,
   subtaskId,
@@ -73,6 +66,18 @@ export const updateStatusTask = async (taskId, userId, status) => {
   const res = await axios.put(
     `${process.env.REACT_APP_API_URL}/api/task/update_status/task/${taskId}/user/${userId}`,
     { status }
+  );
+  return res.data;
+};
+export const assignedTask = async (taskId, userId) => {
+  const res = await axios.put(
+    `${process.env.REACT_APP_API_URL}/api/task/addassignee/task/${taskId}/user/${userId}`
+  );
+  return res.data;
+};
+export const removeassignee = async (taskId, userId) => {
+  const res = await axios.put(
+    `${process.env.REACT_APP_API_URL}/api/task/removeassignee/task/${taskId}/user/${userId}`
   );
   return res.data;
 };

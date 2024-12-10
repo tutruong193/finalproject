@@ -1,5 +1,7 @@
 const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
+const { deleteMemberFromProject } = require("./ProjectService");
+const Project = require("../models/ProjectModel");
 const { generalAccessToken } = require("./JWTService");
 const EmailService = require("./EmailService");
 const createUser = (data) => {
@@ -53,23 +55,32 @@ const deleteUser = async (id) => {
   return new Promise(async (resolve, reject) => {
     try {
       const checkUser = await User.findById(id);
-      if (checkUser == null) {
-        resolve({
+      if (!checkUser) {
+        return resolve({
           status: "ERR",
           message: "Cannot find user",
         });
-      } else {
-        await User.findByIdAndDelete(id);
-        resolve({
-          status: "OK",
-          message: "SUCCESS",
-        });
       }
+      const projects = await Project.find();
+      for (const project of projects) {
+        await deleteMemberFromProject(project._id, id);
+      }
+      await User.findByIdAndDelete(id);
+      return resolve({
+        status: "OK",
+        message: "SUCCESS",
+      });
     } catch (error) {
-      throw error;
+      console.error("Error deleting user:", error);
+      return reject({
+        status: "ERR",
+        message: "An error occurred while deleting the user",
+        error: error.message,
+      });
     }
   });
 };
+
 const deleteManyUser = async (ids) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -79,6 +90,12 @@ const deleteManyUser = async (ids) => {
           message: "No users selected for deletion",
         });
       } else {
+        const projects = await Project.find();
+        for (const id of ids) {
+          for (const project of projects) {
+            await deleteMemberFromProject(project._id, id);
+          }
+        }
         await User.deleteMany({
           _id: { $in: ids }, // Điều kiện xóa: _id trong danh sách ids
         });

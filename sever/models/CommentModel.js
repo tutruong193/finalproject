@@ -5,19 +5,13 @@ const CommentSchema = new Schema(
   {
     content: {
       type: String,
-      required: true, // Nội dung bình luận là bắt buộc
-      trim: true, // Loại bỏ khoảng trắng thừa
+      required: true,
+      trim: true,
     },
     author: {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-      },
-      userName: {
-        type: String,
-        required: true,
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     taskId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -271,6 +271,7 @@ const deleteMemberFromProject = (id, userId) => {
           message: "This user account does not exist",
         });
       }
+
       const project = await Project.findById(id);
       if (!project) {
         return resolve({
@@ -287,26 +288,35 @@ const deleteMemberFromProject = (id, userId) => {
           message: "User is not a member of this project",
         });
       }
-
       project.members.splice(memberIndex, 1);
       await project.save();
       const tasks = await Task.find({ projectId: id });
       for (const task of tasks) {
         if (task.assignees.toString() === userId) {
-          await Task.findByIdAndDelete(task._id);
+          task.assignees = null;
         }
+
+        if (task.subtasks && task.subtasks.length > 0) {
+          for (const subtask of task.subtasks) {
+            if (subtask.assignees && subtask.assignees.toString() === userId) {
+              subtask.assignees = null;
+            }
+          }
+        }
+        await task.save();
       }
       const user = await User.findById(userId);
       await NotificationService.createNotification(
         id,
-        `Manager removing ${user?.name} from project ${project?.name}`
+        `Manager removed ${user?.name} from project ${project?.name}`
       );
+
       return resolve({
         status: "OK",
-        message:
-          "User removed from project and all associated tasks/subtasks successfully",
+        message: "User removed from project, tasks, and subtasks successfully",
       });
     } catch (e) {
+      console.error("Error:", e);
       return reject({
         status: "ERR",
         message: "An error occurred while deleting member from project",

@@ -10,9 +10,13 @@ import {
   Form,
   DatePicker,
   Spin,
+  Tooltip,
+  Col,
+  Row,
 } from "antd";
+import { useLocation } from "react-router-dom";
 import {
-  DownOutlined,
+  EditOutlined,
   PaperClipOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
@@ -21,7 +25,7 @@ import * as TaskService from "../../services/TaskService";
 import * as CommentService from "../../services/CommentService";
 import * as ProjectService from "../../services/ProjectService";
 import * as Message from "../../components/MessageComponent/MessageComponent";
-
+const { TextArea } = Input;
 const ModelDetailTask = ({
   taskID,
   isModalTaskInformation,
@@ -31,6 +35,7 @@ const ModelDetailTask = ({
   takeAvatar,
   takeEmail,
   taskQuery,
+  fetchAllData,
 }) => {
   const isManager = infoUser?.role === "manager";
   const [comments, setComments] = useState([]);
@@ -42,6 +47,9 @@ const ModelDetailTask = ({
     month: "long",
     year: "numeric",
   };
+  const location = useLocation();
+  // const defaultSelectedKey = isAdmin ? "admin_dashboard" : "user_project_board";
+  const lastpath = location.pathname.split("/").pop();
   const renderDate = (date) => {
     if (!date) return "N/A";
     const parsedDate = new Date(date);
@@ -59,6 +67,13 @@ const ModelDetailTask = ({
       setComments(res.data);
     }
   };
+  const fetchTaskData = async (id) => {
+    setLoading(true);
+    const res = await TaskService.getDetailTask(id);
+    if (res.status === "OK") {
+      setSelectedTask(res.data);
+    }
+  };
   const [project, setProject] = useState();
   const fetchProjects = async () => {
     const id = localStorage.getItem("projectId");
@@ -74,16 +89,7 @@ const ModelDetailTask = ({
       value: member,
     });
   });
-  const fetchTaskData = async (id) => {
-    setLoading(true);
-    const res = await TaskService.getDetailTask(id);
-    if (res.status === "OK") {
-      setSelectedTask(res.data);
-    } else {
-    }
-    setTimeout(setLoading(false), 2000);
-    return null;
-  };
+
   useEffect(() => {
     if (taskID) {
       fetchTaskData(taskID);
@@ -96,7 +102,12 @@ const ModelDetailTask = ({
     const res = await TaskService.deleteTaskSingle(taskID);
     if (res.status === "OK") {
       Message.success();
-      taskQuery.refetch();
+      if (lastpath === "board") {
+        fetchAllData();
+      }
+      if (lastpath === "list") {
+        taskQuery.refetch();
+      }
       handleCancelTaskInformation();
     } else {
       Message.error(res.message);
@@ -107,7 +118,12 @@ const ModelDetailTask = ({
     if (res.status === "OK") {
       Message.success();
       fetchTaskData(taskID);
-      taskQuery.refetch();
+      if (lastpath === "board") {
+        fetchAllData();
+      }
+      if (lastpath === "list") {
+        taskQuery.refetch();
+      }
     } else {
       Message.error(res.message);
     }
@@ -151,6 +167,12 @@ const ModelDetailTask = ({
         formSubtask.resetFields();
         setIsSubtaskModalVisible(false);
         fetchTaskData(taskID);
+        if (lastpath === "board") {
+          fetchAllData();
+        }
+        if (lastpath === "list") {
+          taskQuery.refetch();
+        }
       } else {
         Message.error(res.message);
       }
@@ -164,7 +186,12 @@ const ModelDetailTask = ({
     if (res.status === "OK") {
       Message.success();
       fetchTaskData(taskID);
-      taskQuery.refetch();
+      if (lastpath === "board") {
+        fetchAllData();
+      }
+      if (lastpath === "list") {
+        taskQuery.refetch();
+      }
     } else {
       Message.error(res.message);
     }
@@ -180,7 +207,12 @@ const ModelDetailTask = ({
       if (res.status === "OK") {
         Message.success();
         fetchTaskData(taskID);
-        taskQuery.refetch();
+        if (lastpath === "board") {
+          fetchAllData();
+        }
+        if (lastpath === "list") {
+          taskQuery.refetch();
+        }
       } else {
         Message.error(res.message);
       }
@@ -189,10 +221,44 @@ const ModelDetailTask = ({
       Message.error("Failed to update subtask status");
     }
   };
-
+  //remove and add assignee
+  const [isOpenSelect, setIsOpenSelect] = useState(false);
+  const [selectedUser, setSelectedUser] = useState("");
+  const handleRemoveAssignee = async (id) => {
+    const res = await TaskService.removeassignee(taskID, id);
+    if (res.status === "OK") {
+      Message.success();
+      fetchTaskData(taskID);
+      if (lastpath === "board") {
+        fetchAllData();
+      }
+      if (lastpath === "list") {
+        taskQuery.refetch();
+      }
+    } else {
+      Message.error(res.message);
+    }
+  };
+  const handleAddAssignee = async () => {
+    const res = await TaskService.assignedTask(taskID, selectedUser);
+    if (res.status === "OK") {
+      Message.success();
+      fetchTaskData(taskID);
+      if (lastpath === "board") {
+        fetchAllData();
+      }
+      if (lastpath === "list") {
+        taskQuery.refetch();
+      }
+      setIsOpenSelect(false);
+      setSelectedUser("");
+    } else {
+      Message.error(res.message);
+      setSelectedUser("");
+    }
+  };
   return (
     <>
-      <Spin spinning={loading}></Spin>
       <Modal
         title={null}
         open={isModalTaskInformation}
@@ -201,186 +267,183 @@ const ModelDetailTask = ({
         width={1000}
         className="task-modal"
       >
-        <Spin spinning={loading}>
-          <div className="modal-header">
-            <div className="modal-title">
-              <span style={{ fontSize: "20px" }}>Task Name</span>
-              <span style={{ color: "#6B778C" }}>{selectedTask?.name}</span>
-            </div>
-            <div className="modal-actions" style={{ gap: "20px" }}>
-              <div>{selectedTask?.status}</div>
-              <Select
-                defaultValue={selectedTask?.status}
-                style={{ width: 120 }}
-                onChange={onChangeStatusTask}
-                className={`status-select ${selectedTask?.status}`}
-                options={[
-                  {
-                    value: "todo",
-                    label: "Todo",
-                  },
-                  {
-                    value: "progress",
-                    label: "Progress",
-                  },
-                  {
-                    value: "done",
-                    label: "Done",
-                  },
-                ]}
-              />
-              {isManager && <Button onClick={deleteTask}>Delete</Button>}
-            </div>
+        <div className="modal-header">
+          <div className="modal-title">
+            <span style={{ fontSize: "20px" }}>Task Name</span>
+            <span style={{ color: "#6B778C" }}>{selectedTask?.name}</span>
           </div>
+          <div className="modal-actions">
+            <Select
+              value={selectedTask?.status}
+              style={{
+                width: 120,
+              }}
+              onChange={(value) => onChangeStatusTask(value)}
+              className={`status-select ${selectedTask?.status}`}
+              options={[
+                {
+                  value: "todo",
+                  label: "Todo",
+                },
+                {
+                  value: "progress",
+                  label: "Progress",
+                },
+                {
+                  value: "done",
+                  label: "Done",
+                },
+              ]}
+            />
+            {isManager && <Button onClick={deleteTask}>Delete</Button>}
+          </div>
+        </div>
 
-          <div className="modal-content">
-            <div className="main-content">
-              {isManager && (
-                <div className="action-buttons">
-                  <button className="action-button" onClick={showSubtaskModal}>
-                    <PlusOutlined /> Add a child issue
-                  </button>
-                </div>
-              )}
-              <div>
-                <Typography.Title level={5}>Description</Typography.Title>
-                <Typography.Paragraph type="secondary">
-                  {selectedTask?.description || "Add a description..."}
-                </Typography.Paragraph>
+        <div className="modal-content">
+          <div className="main-content">
+            {isManager && (
+              <div className="action-buttons">
+                <button className="action-button" onClick={showSubtaskModal}>
+                  <PlusOutlined /> Add a child issue
+                </button>
               </div>
+            )}
+            <div>
+              <Typography.Title level={5}>Description</Typography.Title>
+              <Typography.Paragraph type="secondary">
+                {selectedTask?.description || "None"}
+              </Typography.Paragraph>
+            </div>
 
-              <div style={{ marginBottom: "24px" }}>
-                {selectedTask?.subtasks && selectedTask.subtasks.length > 0 && (
-                  <div>
-                    <Typography.Title level={5}>Child issues</Typography.Title>
-                    {selectedTask.subtasks.map((subtask) => (
+            <div style={{ marginBottom: "24px" }}>
+              {selectedTask?.subtasks && selectedTask.subtasks.length > 0 && (
+                <div>
+                  <Typography.Title level={5}>Child issues</Typography.Title>
+                  {selectedTask.subtasks.map((subtask) => (
+                    <div
+                      key={subtask._id} // Giả sử mỗi subtask có thuộc tính _id
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "12px",
+                        border: "1px solid #f0f0f0",
+                        borderRadius: "4px",
+                        alignItems: "center",
+                        marginBottom: "5px",
+                      }}
+                    >
                       <div
-                        key={subtask._id} // Giả sử mỗi subtask có thuộc tính _id
                         style={{
                           display: "flex",
-                          justifyContent: "space-between",
-                          padding: "12px",
-                          border: "1px solid #f0f0f0",
-                          borderRadius: "4px",
                           alignItems: "center",
-                          marginBottom: "5px",
+                          gap: "8px",
                         }}
                       >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <span>{subtask.name}</span>
-                          <span>{renderDate(subtask.dueDate)}</span>{" "}
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <Select
-                            defaultValue={subtask?.status}
-                            style={{
-                              width: 120,
-                            }}
-                            onChange={(value) =>
-                              onChangeStatusSubtask(subtask._id, value)
-                            }
-                            className={`status-select ${subtask?.status}`}
-                            options={[
-                              {
-                                value: "todo",
-                                label: "Todo",
-                              },
-                              {
-                                value: "progress",
-                                label: "Progress",
-                              },
-                              {
-                                value: "done",
-                                label: "Done",
-                              },
-                            ]}
-                          />
-                          {isManager && (
-                            <Button onClick={() => deleteSubtask(subtask._id)}>
-                              Delete
-                            </Button>
-                          )}
-                        </div>
+                        <span>{subtask.name}</span>
+                        <span>{renderDate(subtask.dueDate)}</span>{" "}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="comment-section">
-                <Typography.Title level={5}>Comments</Typography.Title>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <Select
+                          value={subtask?.status}
+                          style={{
+                            width: 120,
+                          }}
+                          onChange={(value) =>
+                            onChangeStatusSubtask(subtask._id, value)
+                          }
+                          className={`status-select ${subtask?.status}`}
+                          options={[
+                            {
+                              value: "todo",
+                              label: "Todo",
+                            },
+                            {
+                              value: "progress",
+                              label: "Progress",
+                            },
+                            {
+                              value: "done",
+                              label: "Done",
+                            },
+                          ]}
+                        />
+                        {isManager && (
+                          <Button onClick={() => deleteSubtask(subtask._id)}>
+                            Delete
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="comment-section">
+              <Typography.Title level={5}>Comments</Typography.Title>
+              <div
+                style={{
+                  backgroundColor: "#fff",
+                  padding: "16px",
+                  border: "1px solid #f0f0f0",
+                  borderRadius: "4px",
+                }}
+              >
                 <div
                   style={{
-                    backgroundColor: "#fff",
-                    padding: "16px",
-                    border: "1px solid #f0f0f0",
-                    borderRadius: "4px",
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "flex-start",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "12px",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <Input.TextArea
-                        placeholder="Add a comment..."
-                        rows={2}
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                      />
-                    </div>
-                    <Button
-                      type="primary"
-                      onClick={handleSaveComment}
-                      disabled={!newComment.trim()} // Disable when input is empty
-                    >
-                      Save
-                    </Button>
+                  <div style={{ flex: 1 }}>
+                    <Input.TextArea
+                      placeholder="Add a comment..."
+                      rows={2}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                    />
                   </div>
-                  {comments?.length > 0 && (
-                    <div className="comment-container">
-                      {comments.map((comment) => (
-                        <div key={comment._id} className="comment">
-                          <div className="comment-header">
-                            <div className="user-avatar">
-                              {takeAvatar(comment?.author?.userId) ? (
-                                <Avatar
-                                  src={takeAvatar(comment?.author?.userId)}
-                                />
-                              ) : (
-                                <Avatar style={{ backgroundColor: "#1890ff" }}>
-                                  {comment?.author?.userName
-                                    .charAt(0)
-                                    .toUpperCase()}
-                                </Avatar>
-                              )}
-                            </div>
-                            <div className="comment-info">
-                              <h3 className="user-name">
-                                {comment?.author?.userName}
-                              </h3>
-                              <p className="comment-date">
-                                {renderDate(comment?.createdAt)}
-                              </p>
-                            </div>
+                  <Button
+                    type="primary"
+                    onClick={handleSaveComment}
+                    disabled={!newComment.trim()} // Disable when input is empty
+                  >
+                    Save
+                  </Button>
+                </div>
+                {comments?.length > 0 && (
+                  <div className="comment-container">
+                    {comments.map((comment) => (
+                      <div key={comment._id} className="comment">
+                        <div className="comment-header">
+                          <div className="user-avatar">
+                            {takeAvatar(comment?.author) ? (
+                              <Avatar src={takeAvatar(comment?.author)} />
+                            ) : (
+                              <Avatar style={{ backgroundColor: "#1890ff" }}>
+                                {takeName(comment?.author)
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </Avatar>
+                            )}
                           </div>
-                          <div className="comment-content">
-                            {comment.content}
+                          <div className="comment-info">
+                            <h3 className="user-name">
+                              {comment?.author?.userName}
+                            </h3>
+                            <p className="comment-date">
+                              {renderDate(comment?.createdAt)}
+                            </p>
                           </div>
+                        </div>
+                        <div className="comment-content">{comment.content}</div>
+                        {infoUser.id === comment?.author && (
                           <div className="comment-actions">
                             <button
                               className="delete-btn"
@@ -389,22 +452,24 @@ const ModelDetailTask = ({
                               Delete
                             </button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-            <div className="sidebar">
-              <div className="field-group">
-                <div className="field-label">Assignee</div>
-                <div className="field-value">
-                  {selectedTask?.assignees ? (
-                    takeAvatar(selectedTask?.assignees) ? (
+          </div>
+          <div className="sidebar">
+            <div className="field-group">
+              <div className="field-label">Assignee</div>
+              <div className="field-value">
+                {selectedTask?.assignees ? (
+                  <>
+                    {takeAvatar(selectedTask?.assignees) ? (
                       <Avatar
                         key={selectedTask?.assignees}
-                        src={takeAvatar(selectedTask?.assignees)} // Hiển thị avatar từ URL
+                        src={takeAvatar(selectedTask?.assignees)}
                         alt={takeName(selectedTask?.assignees)}
                         title={takeName(selectedTask?.assignees)}
                         style={{
@@ -425,66 +490,132 @@ const ModelDetailTask = ({
                           ?.charAt(0)
                           .toUpperCase()}
                       </Avatar>
-                    )
-                  ) : (
+                    )}
+
                     <div>
-                      <Avatar size="small">+</Avatar>
-                      <span>Unassigned</span>
+                      <span>{takeName(selectedTask?.assignees)}</span>
+                      {isManager && (
+                        <Button
+                          type="text"
+                          danger
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent modal from opening
+                            handleRemoveAssignee(selectedTask?.assignees);
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      )}
                     </div>
-                  )}
-                  {takeName(selectedTask?.assignees)}
-                </div>
-              </div>
-              <div className="field-group">
-                <div className="field-label">Due Date</div>
-                <div className="field-value">
-                  {renderDate(selectedTask?.dueDate)}
-                </div>
-              </div>
-              <div className="field-group">
-                <div className="field-label">Reporter</div>
-                <div className="field-value">
-                  {JSON.parse(localStorage.getItem("manage_project_info"))
-                    ?.avatar ? (
-                    <Avatar
-                      src={
-                        JSON.parse(localStorage.getItem("manage_project_info"))
-                          ?.avatar
+                  </>
+                ) : isOpenSelect ? (
+                  <>
+                    <Select
+                      showSearch
+                      allowClear
+                      style={{
+                        flex: 1,
+                      }}
+                      value={selectedUser}
+                      onChange={(value) => setSelectedUser(value)}
+                      placeholder="Search by name"
+                      optionFilterProp="label"
+                      filterSort={(optionA, optionB) =>
+                        (optionA?.label ?? "")
+                          .toLowerCase()
+                          .localeCompare((optionB?.label ?? "").toLowerCase())
                       }
+                      options={options}
                     />
-                  ) : (
-                    <Avatar style={{ backgroundColor: "#1890ff" }}>
-                      {JSON.parse(localStorage.getItem("manage_project_info"))
-                        ?.name.charAt(0)
-                        .toUpperCase()}
-                    </Avatar>
-                  )}
-
-                  <span>
-                    {
-                      JSON.parse(localStorage.getItem("manage_project_info"))
-                        ?.name
-                    }
-                  </span>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#6B778C",
-                  marginTop: "24px",
-                }}
-              >
-                <div>Created {dayjs(selectedTask?.createdAt).fromNow()}</div>
-                <div>Updated {dayjs(selectedTask?.updatedAt).fromNow()}</div>
-                <div>Resolved {dayjs().fromNow()}</div>{" "}
+                    <Button
+                      type="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddAssignee();
+                      }}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsOpenSelect(false);
+                        setSelectedUser("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      cursor: "pointer",
+                      cursor: !isManager ? "not-allowed" : "pointer",
+                    }}
+                    onClick={(e) => {
+                      if (!isManager) return; // Nếu disable thì không cho click
+                      e.stopPropagation(); // Prevent modal from opening
+                      setIsOpenSelect(true);
+                    }}
+                  >
+                    <Avatar size="small">+</Avatar>
+                    <span>Unassigned</span>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        </Spin>
-      </Modal>
+            <div className="field-group">
+              <div className="field-label">Due Date</div>
+              <div className="field-value">
+                {renderDate(selectedTask?.dueDate)}
+              </div>
+            </div>
+            <div className="field-group">
+              <div className="field-label">Reporter</div>
+              <div className="field-value">
+                {JSON.parse(localStorage.getItem("manage_project_info"))
+                  ?.avatar ? (
+                  <Avatar
+                    src={
+                      JSON.parse(localStorage.getItem("manage_project_info"))
+                        ?.avatar
+                    }
+                  />
+                ) : (
+                  <Avatar style={{ backgroundColor: "#1890ff" }}>
+                    {JSON.parse(localStorage.getItem("manage_project_info"))
+                      ?.name.charAt(0)
+                      .toUpperCase()}
+                  </Avatar>
+                )}
 
+                <span>
+                  {
+                    JSON.parse(localStorage.getItem("manage_project_info"))
+                      ?.name
+                  }
+                </span>
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#6B778C",
+                marginTop: "24px",
+              }}
+            >
+              <div>Created {dayjs(selectedTask?.createdAt).fromNow()}</div>
+              <div>Updated {dayjs(selectedTask?.updatedAt).fromNow()}</div>
+              <div>Resolved {dayjs().fromNow()}</div>{" "}
+            </div>
+          </div>
+        </div>
+      </Modal>
       <Modal
         title="Add Subtask"
         open={isSubtaskModalVisible}

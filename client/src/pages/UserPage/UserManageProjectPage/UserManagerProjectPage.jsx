@@ -4,7 +4,17 @@ import {
   FilterOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { Input, Button, Row, Col, Modal, Form, DatePicker, Select } from "antd";
+import {
+  Input,
+  Button,
+  Row,
+  Col,
+  Modal,
+  Form,
+  DatePicker,
+  Select,
+  Empty,
+} from "antd";
 import moment from "moment";
 import ProjectCardComponent from "../../../components/ProjectCardComponent/ProjectCardComponent";
 import { useNavigate } from "react-router-dom";
@@ -37,7 +47,7 @@ const UserManagerProjectPage = () => {
       project.managerID === infoUser?.id ||
       project.members?.some((member) => member === infoUser?.id)
   );
-  
+  console.log(dataProject);
   // Modal add project
   const [formAddProject] = Form.useForm();
   const [isModalAddProject, setIsModalAddProject] = useState(false);
@@ -162,17 +172,66 @@ const UserManagerProjectPage = () => {
             </div>
           </div>
           <Row className="projects" gutter={[16, 16]}>
-            {dataProject?.map((project) => (
-              <Col key={project._id} span={4}>
-                <ProjectCardComponent
-                  projectId={project._id}
-                  projectQuerry={projectQuerry}
+            {dataProject?.filter(
+              (project) => new Date(project.endDate) >= new Date()
+            ).length > 0 ? (
+              dataProject
+                ?.filter((project) => new Date(project.endDate) >= new Date())
+                .map((project) => (
+                  <Col key={project._id} span={4}>
+                    <ProjectCardComponent
+                      projectId={project._id}
+                      projectQuerry={projectQuerry}
+                    />
+                  </Col>
+                ))
+            ) : (
+              <Col span={24}>
+                <Empty
+                  description="No recent projects found"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
               </Col>
-            ))}
+            )}
           </Row>
         </div>
+        <div className="container-title">
+          <h2
+            style={{
+              fontSize: "15px",
+              fontWeight: 600,
+              fontFamily: "Roboto, sans-serif",
+              padding: "20px 0px",
+            }}
+          >
+            Finished projects
+          </h2>
+        </div>
+        <Row className="projects" gutter={[16, 16]}>
+          {dataProject?.filter(
+            (project) => new Date(project.endDate) < new Date()
+          ).length > 0 ? (
+            dataProject
+              ?.filter((project) => new Date(project.endDate) < new Date())
+              .map((project) => (
+                <Col key={project._id} span={4}>
+                  <ProjectCardComponent
+                    projectId={project._id}
+                    projectQuerry={projectQuerry}
+                  />
+                </Col>
+              ))
+          ) : (
+            <Col span={24}>
+              <Empty
+                description="No finished projects found"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            </Col>
+          )}
+        </Row>
       </div>
+
       <Modal
         title="Add a new project"
         open={isModalAddProject}

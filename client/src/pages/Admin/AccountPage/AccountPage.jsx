@@ -26,6 +26,8 @@ const AccountPage = () => {
       dataIndex: "name",
       key: "name",
       render: (name) => highlightText(name, searchValue),
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      sortDirections: ["ascend", "descend"],
     },
     {
       title: "Email",
@@ -43,6 +45,11 @@ const AccountPage = () => {
       title: "Roles",
       key: "roles",
       dataIndex: "roles",
+      filters: [
+        { text: "Manager", value: "manager" },
+        { text: "Member", value: "member" },
+      ],
+      onFilter: (value, record) => record.roles === value,
       render: (role) => {
         // Xác định màu dựa trên vai trò
         let color =
@@ -253,7 +260,7 @@ const AccountPage = () => {
   };
   const filteredDataTable = dataTable?.filter((user) =>
     user.name.toLowerCase().includes(searchValue.toLowerCase())
-  ); // Lọc dữ liệu theo giá trị tìm kiếm
+  );
   const highlightText = (text, searchValue) => {
     if (!searchValue) return text;
     const parts = text.split(new RegExp(`(${searchValue})`, "gi"));
@@ -275,7 +282,7 @@ const AccountPage = () => {
     <div style={{ width: "100%" }}>
       <div className="container_admin_account">
         <div className="container_admin_account_title">
-          <h2 style={{ margin: 0 }}>User management</h2>
+          <h2>User management</h2>
           <span>Manage the accounts here</span>
         </div>
         <div className="container_admin_account_header">
@@ -294,7 +301,6 @@ const AccountPage = () => {
               onChange={handleSearch}
             />
             <div className="container_admin_account_action">
-              <Button type="primary">Filter</Button>
               <Button type="primary" onClick={showModalAddUser}>
                 Add
               </Button>

@@ -98,127 +98,6 @@ const getDetailTask = async (id) => {
     }
   });
 };
-const updateTask = async (id, data) => {
-  return new Promise(async (resolve, reject) => {
-    const {
-      name,
-      projectId,
-      dueDate,
-      assignees,
-      priority,
-      status,
-      description,
-      subtasks,
-    } = data;
-    try {
-      const project = await Project.findById(projectId);
-      if (!project) {
-        return resolve({
-          status: "ERR",
-          message: "Project not found",
-        });
-      }
-      if (new Date(project.endDate) < new Date(dueDate)) {
-        return resolve({
-          status: "ERR",
-          message: `Due date of task "${name}" cannot be later than the project end date`,
-        });
-      }
-      if (new Date(project.startDate) > new Date(dueDate)) {
-        return resolve({
-          status: "ERR",
-          message: `Due date of task "${name}" cannot be elier than the project start date`,
-        });
-      }
-      const checkTask = await Task.findOne({ name: name });
-      if (checkTask !== null && checkTask.projectId === projectId) {
-        return resolve({
-          status: "ERR",
-          message: "Task has already had",
-        });
-      }
-      const assigneeIds = assignees.map((assignee) => assignee.userId);
-      // Kiểm tra danh sách assignees có hợp lệ không
-      const validAssignees = await User.find({ _id: { $in: assigneeIds } });
-      if (validAssignees.length !== assigneeIds.length) {
-        return resolve({
-          status: "ERR",
-          message: "One or more assignees are invalid",
-        });
-      }
-      if (subtasks && subtasks.length > 0) {
-        for (const subtask of subtasks) {
-          const {
-            name: subtaskName,
-            assignees: subtaskAssignees,
-            dueDate: subtaskDueDate,
-          } = subtask;
-
-          // Kiểm tra tên của subtask
-          if (!subtaskName) {
-            return resolve({
-              status: "ERR",
-              message: "Subtask must have a name",
-            });
-          }
-          // Kiểm tra danh sách assignees của từng subtask
-          if (subtaskAssignees && subtaskAssignees.length > 0) {
-            const subtaskAssigneeIds = subtaskAssignees.map(
-              (assignee) => assignee.userId
-            );
-            const validSubtaskAssignees = await User.find({
-              _id: { $in: subtaskAssigneeIds },
-            });
-            if (validSubtaskAssignees.length !== subtaskAssigneeIds.length) {
-              return resolve({
-                status: "ERR",
-                message: `One or more assignees in subtask "${subtaskName}" are invalid`,
-              });
-            }
-          } else {
-            return resolve({
-              status: "ERR",
-              message: `Subtask "${subtaskName}" must have at least one assignee`,
-            });
-          }
-          // Kiểm tra dueDate của subtask
-          const taskDueDate = dueDate;
-          const projectStartDate = project.startDate;
-          if (!subtaskDueDate) {
-            return resolve({
-              status: "ERR",
-              message: `Subtask "${subtaskName}" must have a due date`,
-            });
-          }
-          if (new Date(subtaskDueDate) < new Date(projectStartDate)) {
-            return resolve({
-              status: "ERR",
-              message: `Due date of subtask "${subtaskName}" cannot be earlier than the project start date`,
-            });
-          }
-
-          if (new Date(subtaskDueDate) > new Date(taskDueDate)) {
-            return resolve({
-              status: "ERR",
-              message: `Due date of subtask "${subtaskName}" cannot be later than the task due date`,
-            });
-          }
-        }
-      }
-      await Task.findByIdAndUpdate(id, data);
-      await NotificationService.createNotification(
-        projectId,
-        `Project ${project?.name} is update a task`
-      );
-      resolve({
-        status: "OK",
-        message: "Task updated successfully",
-      });
-    } catch (error) {
-      throw error;
-    }
-  });
-};
 const addSubtask = async (id, data) => {
   return new Promise(async (resolve, reject) => {
     const { name, dueDate } = data;
@@ -289,7 +168,6 @@ const deleteTasks = async (taskIds) => {
           });
         }
       }
-
       return resolve({
         status: "OK",
         message: "All tasks deleted successfully",
@@ -454,6 +332,12 @@ const updateStatusTask = async (taskId, userId, status) => {
         });
       }
       if (project.managerID.toString() !== userId) {
+        if (!task.assignees) {
+          return resolve({
+            status: "ERR",
+            message: "This task not assigned to anyone",
+          });
+        }
         if (task.assignees.toString() !== userId) {
           return resolve({
             status: "ERR",
@@ -542,15 +426,114 @@ const deleteTask = async (taskId) => {
     }
   });
 };
+const addAssigneeTask = async (taskId, userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const task = await Task.findOne({ _id: taskId });
+      if (!task) {
+        return resolve({
+          status: "ERR",
+          message: "Task not found",
+        });
+      }
+      const project = await Project.findById(task.projectId);
+      if (!project.members.includes(userId)) {
+        return resolve({
+          status: "ERR",
+          message: "This member is not a member of this project",
+        });
+      }
+      if (task.assignees) {
+        return resolve({
+          status: "ERR",
+          message: "This task already has member",
+        });
+      }
+      task.assignees = userId;
+      if (task.subtasks && task.subtasks.length > 0) {
+        for (const subtask of task.subtasks) {
+          subtask.assignees = userId;
+        }
+      }
+      await task.save();
+      const user = await User.findById(userId);
+      await NotificationService.createNotification(
+        project?._id,
+        `Task ${task.name} is assigned to ${user.name}`
+      );
+      resolve({
+        status: "OK",
+        message: "Task status updated successfully",
+      });
+    } catch (error) {
+      reject({
+        status: "ERR",
+        message: error.message,
+      });
+    }
+  });
+};
+const removeAssigneeTask = async (taskId, userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const task = await Task.findOne({ _id: taskId });
+      if (!task) {
+        return resolve({
+          status: "ERR",
+          message: "Task not found",
+        });
+      }
+      const project = await Project.findById(task.projectId);
+      if (!project.members.includes(userId)) {
+        return resolve({
+          status: "ERR",
+          message: "This member is not a member of this project",
+        });
+      }
+      if (!task.assignees) {
+        return resolve({
+          status: "ERR",
+          message: "This task already has no member",
+        });
+      }
+
+      task.assignees = null;
+
+      if (task.subtasks && task.subtasks.length > 0) {
+        for (const subtask of task.subtasks) {
+          if (subtask.assignees && subtask.assignees === userId) {
+            subtask.assignees = null;
+          }
+        }
+      }
+      await task.save();
+      const user = await User.findById(userId);
+      await NotificationService.createNotification(
+        project?._id,
+        `Task ${task.name} is unassigned to ${user.name}`
+      );
+      resolve({
+        status: "OK",
+        message: "Task status updated successfully",
+      });
+    } catch (error) {
+      reject({
+        status: "ERR",
+        message: error.message,
+      });
+    }
+  });
+};
 module.exports = {
   createTask,
   getAllTask,
   getDetailTask,
-  updateTask,
   updateStatusTask,
   updateStatusSubtask,
   addSubtask,
   deleteTasks,
   deleteTask,
   deleteSubtask,
+  addAssigneeTask,
+  removeAssigneeTask,
 };

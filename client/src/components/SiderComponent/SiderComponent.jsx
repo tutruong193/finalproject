@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Layout, Menu, Modal, Switch, message } from "antd";
+import React, { useState, useEffect } from "react";
+import { Layout, Menu, Drawer } from "antd";
 import {
   ReadOutlined,
   SearchOutlined,
@@ -8,39 +8,58 @@ import {
   UnorderedListOutlined,
   ProjectOutlined,
   DashboardOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
 import { useCookies } from "react-cookie";
 import { jwtTranslate } from "../../ultilis";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const { Sider } = Layout;
 
 const SiderComponent = () => {
   const navigate = useNavigate();
   const [cookiesAccessToken] = useCookies("");
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
   const isManager = infoUser?.role?.includes("manager");
   const isAdmin = infoUser?.role?.includes("admin");
-  const defaultSelectedKey = isAdmin ? "admin_dashboard" : "user_project_board";
+  const location = useLocation();
+  // const defaultSelectedKey = isAdmin ? "admin_dashboard" : "user_project_board";
+  const lastpath = location.pathname.split("/").pop();
+  // const [defaultSelectedKey, setdefaultSelectedKey] = useState("");
+  const defaultSelectedKey = lastpath;
+  // Check screen size and update mobile state
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
   const items = isAdmin
     ? [
         {
-          key: "admin_dashboard",
+          key: "dashboard",
           icon: <DashboardOutlined />,
           label: "Dashboard",
         },
         {
-          key: "admin_account",
+          key: "account",
           icon: <UserOutlined />,
           label: "Account",
         },
         {
-          key: "admin_project",
+          key: "project",
           icon: <ProjectOutlined />,
           label: "Project",
         },
         {
-          key: "admin_notification",
+          key: "activity",
           icon: <ReadOutlined />,
           label: "Activity",
         },
@@ -52,56 +71,91 @@ const SiderComponent = () => {
           type: "group",
           children: [
             {
-              key: "user_project_board",
+              key: "board",
               label: "Board",
               icon: <TableOutlined />,
             },
             {
-              key: "user_project_list",
+              key: "list",
               label: "List",
               icon: <UnorderedListOutlined />,
             },
-          ], // Loại bỏ các mục không hiển thị
+          ],
         },
       ];
 
-  // Xử lý khi người dùng click vào menu
+  // Handle menu item click
   const handleMenuClick = (e) => {
     switch (e.key) {
-      case "admin_account":
+      case "account":
         navigate("/system/admin/account");
         break;
-      case "admin_project":
+      case "project":
         navigate("/system/admin/project");
         break;
-      case "admin_notification":
+      case "activity":
         navigate("/system/admin/activity");
         break;
-      case "admin_dashboard":
+      case "dashboard":
         navigate("/system/admin/dashboard");
         break;
-      case "user_project_board":
+      case "board":
         navigate("/system/user/project/board");
         break;
-      case "user_project_list":
+      case "list":
         navigate("/system/user/project/list");
         break;
       default:
         break;
     }
+    // Close menu after navigation on mobile
+    if (isMobile) {
+      setIsMenuOpen(false);
+    }
+  };
+
+  // Render mobile menu button
+  const renderMobileMenuButton = () => {
+    return isMobile ? (
+      <div className="mobile-menu-button" onClick={() => setIsMenuOpen(true)}>
+        <MenuOutlined />
+      </div>
+    ) : null;
   };
 
   return (
-    <Sider width="17%" className="container-sider" collapsed={false}>
-      <div style={{ height: "70px" }}></div>
-      <Menu
-        defaultSelectedKeys={defaultSelectedKey}
-        mode="inline"
-        items={items}
-        className="custom-menu"
-        onClick={handleMenuClick}
-      />
-    </Sider>
+    <>
+      {renderMobileMenuButton()}
+
+      {isMobile ? (
+        <Drawer
+          placement="left"
+          closable={true}
+          onClose={() => setIsMenuOpen(false)}
+          open={isMenuOpen}
+          className="mobile-menu-drawer"
+        >
+          <Menu
+            selectedKeys={[defaultSelectedKey]}
+            mode="inline"
+            items={items}
+            className="custom-mobile-menu"
+            onClick={handleMenuClick}
+          />
+        </Drawer>
+      ) : (
+        <Sider width="17%" className="container-sider">
+          <div style={{ height: "70px" }}></div>
+          <Menu
+            defaultSelectedKeys={defaultSelectedKey}
+            mode="inline"
+            items={items}
+            className="custom-menu"
+            onClick={handleMenuClick}
+          />
+        </Sider>
+      )}
+    </>
   );
 };
 

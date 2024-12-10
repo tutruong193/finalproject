@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Input, message, Steps, theme, Typography } from "antd";
+import { Button, Input, Steps, theme, Typography } from "antd";
 import {
   MailOutlined,
   LockOutlined,
@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import * as UserService from "../../services/UserService";
 import * as Message from "../../components/MessageComponent/MessageComponent";
+
 const { Title, Text } = Typography;
 
 const ForgotPassword = () => {
@@ -21,14 +22,17 @@ const ForgotPassword = () => {
   const [verificationCode, setVerificationCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [stateUser, setStateUser] = useState("");
+
   const onBackToLogin = () => {
     navigate("/login");
   };
+
   useEffect(() => {
     if (current === 1) {
       sendVerificationCode();
     }
   }, [current]);
+
   const sendVerificationCode = async () => {
     const res = await UserService.sendVertifyCode(stateUser?._id);
     if (res.status === "OK") {
@@ -37,36 +41,20 @@ const ForgotPassword = () => {
       Message.error(res.message);
     }
   };
+
   const steps = [
     {
       title: "Verify Email",
       content: (
-        <div
-          className="step-content"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            padding: "20px",
-          }}
-        >
+        <div className="step-content">
           <Title
             level={3}
-            style={{
-              marginBottom: "20px",
-              color: token.colorPrimary,
-            }}
+            className="step-title"
+            style={{ color: token.colorPrimary }}
           >
             Reset Your Password
           </Title>
-          <Text
-            type="secondary"
-            style={{
-              marginBottom: "24px",
-              maxWidth: "400px",
-            }}
-          >
+          <Text type="secondary" className="step-description">
             Enter the email address associated with your account. We'll send a
             verification code to reset your password.
           </Text>
@@ -76,11 +64,7 @@ const ForgotPassword = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             size="large"
-            style={{
-              width: "100%",
-              maxWidth: "400px",
-              marginBottom: "16px",
-            }}
+            className="step-input"
           />
         </div>
       ),
@@ -88,57 +72,25 @@ const ForgotPassword = () => {
     {
       title: "Verification",
       content: (
-        <div
-          className="step-content"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            padding: "20px",
-          }}
-        >
+        <div className="step-content">
           <Title
             level={3}
-            style={{
-              marginBottom: "20px",
-              color: token.colorPrimary,
-            }}
+            className="step-title"
+            style={{ color: token.colorPrimary }}
           >
             Verify Your Identity
           </Title>
-          <div
-            style={{
-              backgroundColor: "#f0f0f0",
-              borderRadius: "8px",
-              padding: "20px",
-              marginBottom: "20px",
-              width: "100%",
-              maxWidth: "400px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
+          <div className="user-info-box">
             <UserOutlined
-              style={{
-                fontSize: "48px",
-                color: token.colorPrimary,
-                marginBottom: "16px",
-              }}
+              className="user-icon"
+              style={{ color: token.colorPrimary }}
             />
-            <Text strong style={{ marginBottom: "10px" }}>
+            <Text strong className="user-name">
               {stateUser?.name || "User"}
             </Text>
             <Text type="secondary">{stateUser?.email || email}</Text>
           </div>
-          <Text
-            type="secondary"
-            style={{
-              marginBottom: "24px",
-              maxWidth: "400px",
-            }}
-          >
+          <Text type="secondary" className="step-description">
             Check your email for a 6-digit verification code. Enter the code
             below to proceed.
           </Text>
@@ -146,28 +98,11 @@ const ForgotPassword = () => {
             value={verificationCode}
             onChange={setVerificationCode}
             size="large"
-            style={{
-              width: "100%",
-              maxWidth: "400px",
-              marginBottom: "16px",
-            }}
+            className="step-input"
           />
-          <Text
-            type="secondary"
-            style={{
-              marginBottom: "24px",
-              maxWidth: "400px",
-            }}
-          >
+          <Text type="secondary" className="step-description">
             If you don't receive any code, please{" "}
-            <span
-              style={{
-                color: "blue",
-                textDecoration: "underline",
-                cursor: "pointer",
-              }}
-              onClick={sendVerificationCode}
-            >
+            <span className="resend-link" onClick={sendVerificationCode}>
               resend
             </span>
           </Text>
@@ -177,32 +112,15 @@ const ForgotPassword = () => {
     {
       title: "Reset Password",
       content: (
-        <div
-          className="step-content"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            padding: "20px",
-          }}
-        >
+        <div className="step-content">
           <Title
             level={3}
-            style={{
-              marginBottom: "20px",
-              color: token.colorPrimary,
-            }}
+            className="step-title"
+            style={{ color: token.colorPrimary }}
           >
             Create New Password
           </Title>
-          <Text
-            type="secondary"
-            style={{
-              marginBottom: "24px",
-              maxWidth: "400px",
-            }}
-          >
+          <Text type="secondary" className="step-description">
             Choose a strong, unique password that you haven't used on other
             sites.
           </Text>
@@ -212,16 +130,13 @@ const ForgotPassword = () => {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             size="large"
-            style={{
-              width: "100%",
-              maxWidth: "400px",
-              marginBottom: "16px",
-            }}
+            className="step-input"
           />
         </div>
       ),
     },
   ];
+
   const next = async () => {
     try {
       switch (current) {
@@ -295,45 +210,11 @@ const ForgotPassword = () => {
     title: item.title,
   }));
 
-  const containerStyle = {
-    width: "100%",
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f0f2f5",
-    padding: "20px",
-  };
-
-  const cardStyle = {
-    width: "100%",
-    maxWidth: "800px",
-    padding: "30px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    backgroundColor: "white",
-  };
-
-  const contentStyle = {
-    textAlign: "center",
-    padding: "20px",
-    minHeight: "250px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-  };
-
   const renderButtons = () => {
     switch (current) {
       case 0:
         return (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: "24px",
-            }}
-          >
+          <div className="button-container">
             <Button icon={<LoginOutlined />} onClick={onBackToLogin}>
               Back to Login
             </Button>
@@ -348,13 +229,7 @@ const ForgotPassword = () => {
         );
       case 1:
         return (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: "24px",
-            }}
-          >
+          <div className="button-container">
             <Button icon={<ArrowLeftOutlined />} onClick={prev}>
               Previous
             </Button>
@@ -369,13 +244,7 @@ const ForgotPassword = () => {
         );
       case 2:
         return (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: "24px",
-            }}
-          >
+          <div className="button-container">
             <Button icon={<ArrowLeftOutlined />} onClick={prev}>
               Previous
             </Button>
@@ -394,14 +263,14 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={cardStyle}>
+    <div className="forgot-password-container">
+      <div className="forgot-password-card">
         <Steps
           current={current}
           items={items}
           style={{ marginBottom: "30px" }}
         />
-        <div style={contentStyle}>{steps[current].content}</div>
+        <div className="forgot-password-content">{steps[current].content}</div>
         {renderButtons()}
       </div>
     </div>

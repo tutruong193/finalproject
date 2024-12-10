@@ -1,20 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Select,
-  Table,
-  Avatar,
-  Modal,
-  Button,
-  Typography,
-  Tabs,
-  Input,
-  Tooltip,
-  Form,
-  DatePicker,
-  Radio,
-} from "antd";
-import * as TaskService from "../../services/TaskService";
-import * as CommentService from "../../services/CommentService";
+import { Table, Avatar, Tag } from "antd";
 import {
   DownOutlined,
   PaperClipOutlined,
@@ -41,21 +26,6 @@ const renderDate = (date) => {
   if (isNaN(parsedDate)) return "Invalid Date"; // Kiểm tra xem có phải là ngày hợp lệ không
   return new Intl.DateTimeFormat("en-US", dateFormatOptions).format(parsedDate);
 };
-const itemPriority = [
-  {
-    label: "High",
-    value: "high",
-  },
-  {
-    label: "Medium",
-    value: "medium",
-  },
-  {
-    label: "Low",
-    value: "low",
-  },
-];
-
 const tags = [
   {
     status: "todo",
@@ -73,24 +43,6 @@ const tags = [
     backgroundColor: "rgba(81, 210, 140, .1)",
   },
 ];
-const priorityTags = [
-  {
-    priority: "low",
-    color: "#52c41a", // Xanh lá cho mức độ ưu tiên thấp
-    backgroundColor: "rgba(82, 196, 26, 0.1)",
-  },
-  {
-    priority: "medium",
-    color: "#faad14", // Vàng cho mức độ ưu tiên trung bình
-    backgroundColor: "rgba(250, 173, 20, 0.1)",
-  },
-  {
-    priority: "high",
-    color: "#f5222d", // Đỏ cho mức độ ưu tiên cao
-    backgroundColor: "rgba(245, 34, 45, 0.1)",
-  },
-];
-
 const TableListView = ({
   taskQuery,
   data,
@@ -99,7 +51,7 @@ const TableListView = ({
   takeName,
   takeEmail,
   highlightText,
-  searchValue
+  searchValue,
 }) => {
   const [cookiesAccessToken] = useCookies("");
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
@@ -115,7 +67,29 @@ const TableListView = ({
       title: "Type",
       dataIndex: "type",
       key: "type",
-      width: 100,
+      width: 150,
+      render: (type) => {
+        if (Array.isArray(type)) {
+          return (
+            <>
+              {type.map((t) => (
+                <Tag
+                  key={t}
+                  color={t === "Task" ? "blue" : "green"} // Màu xanh dương cho Task và xanh lá cho Subtask
+                  style={{ marginBottom: "4px" }}
+                >
+                  {t}
+                </Tag>
+              ))}
+            </>
+          );
+        }
+        return (
+          <Tag color="blue" style={{ marginBottom: "4px" }}>
+            {type}
+          </Tag>
+        );
+      },
     },
     {
       title: "Description",
@@ -128,6 +102,12 @@ const TableListView = ({
       dataIndex: "status",
       key: "status",
       width: 120,
+      filters: [
+        { text: "To do", value: "todo" },
+        { text: "Progress", value: "progress" },
+        { text: "Done", value: "done" },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (status) => {
         const tag = tags.find((tag) => tag.status === status);
         return (
@@ -146,17 +126,17 @@ const TableListView = ({
       },
     },
     {
-      title: "Assignees",
+      title: "Assignee",
       dataIndex: "assignees",
       key: "assignees",
-      width: 120,
+      width: 100,
       render: (assignees) =>
         assignees?.length > 0 ? (
           <Avatar.Group count={2}>
             {takeAvatar(assignees) ? (
               <Avatar
                 key={assignees}
-                src={takeAvatar(assignees)} // Hiển thị avatar từ URL
+                src={takeAvatar(assignees)}
                 alt={takeName(assignees)}
                 title={takeName(assignees)}
                 style={{
@@ -213,9 +193,13 @@ const TableListView = ({
     return data.map((task) => {
       const formattedTask = {
         ...task,
-        type: "task",
+        type:
+          task.subtasks && task.subtasks.length > 0
+            ? ["Task", "Subtask"]
+            : ["Task"],
         key: task._id,
       };
+
       return formattedTask;
     });
   };

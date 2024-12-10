@@ -12,7 +12,6 @@ router.delete(
   TaskController.deleteSubTask
 );
 router.get("/detail/:id", TaskController.getDetailTask);
-router.put("/update/:id", TaskController.updateTask);
 router.put(
   "/update_status/task/:taskId/subtask/:subtaskId/user/:userId",
   TaskController.updateStatusSubtask
@@ -20,5 +19,14 @@ router.put(
 router.put(
   "/update_status/task/:taskId/user/:userId",
   TaskController.updateStatusTask
+);
+
+router.put(
+  "/addassignee/task/:taskId/user/:userId",
+  TaskController.addAssigneeTask
+);
+router.put(
+  "/removeassignee/task/:taskId/user/:userId",
+  TaskController.removeAssigneeTask
 );
 module.exports = router;

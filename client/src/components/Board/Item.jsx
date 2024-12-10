@@ -2,26 +2,22 @@ import React, { useEffect, useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
 import dayjs from "dayjs";
 import {
-  Select,
-  Radio,
-  Avatar,
-  Modal,
-  Button,
   Typography,
-  Tabs,
-  Input,
+  Avatar,
+  Tag,
   Tooltip,
   Checkbox,
-  Form,
-  DatePicker,
+  Progress,
+  Card,
+  Space,
 } from "antd";
 import * as TaskService from "../../services/TaskService";
 import {
-  DownOutlined,
-  PaperClipOutlined,
-  PlusOutlined,
-  LinkOutlined,
-  EllipsisOutlined,
+  ClockCircleOutlined,
+  FlagOutlined,
+  UserOutlined,
+  FileTextOutlined,
+  PlusCircleFilled,
 } from "@ant-design/icons";
 import ModelDetailTask from "../ModelDetailTask/ModelDetailTask";
 import * as UserService from "../../services/UserService";
@@ -42,7 +38,7 @@ const renderDate = (date) => {
   if (isNaN(parsedDate)) return "Invalid Date"; // Kiểm tra xem có phải là ngày hợp lệ không
   return new Intl.DateTimeFormat("en-US", dateFormatOptions).format(parsedDate);
 };
-const { Text } = Typography;
+const { Text, Paragraph } = Typography;
 const itemPriority = [
   {
     label: "High",
@@ -108,27 +104,95 @@ const Item = ({ item, index, fetchAllData }) => {
             {...provided.draggableProps}
             {...provided.dragHandleProps}
             className={`task-card ${snapshot.isDragging ? "dragging" : ""}`}
+            onClick={() => showModal(item._id)}
           >
-            <div className="task-name" onClick={() => showModal(item._id)}>
-              {item.name}
-            </div>
-            <div className="task-header">
-              <Checkbox />
-              <Text className="task-id">TASK</Text>
-            </div>
-            <div
-              style={{
-                width: "100%",
-                justifyContent: "flex-end",
-                display: "flex",
-              }}
-            >
-              {item.dueDate && (
-                <div className="task-date">
-                  {dayjs(item.dueDate).format("DD MMM")}
+            <Space direction="vertical" size="small" style={{ width: "100%" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  {item.subtasks && item.subtasks.length > 0 ? (
+                    <>
+                      <Tag color={"blue"} style={{ marginBottom: "4px" }}>
+                        Task
+                      </Tag>
+                      <Tag color={"green"} style={{ marginBottom: "4px" }}>
+                        Subtask
+                      </Tag>
+                    </>
+                  ) : (
+                    <Tag color={"blue"} style={{ marginBottom: "4px" }}>
+                      Task
+                    </Tag>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* Due Date */}
+                {item.dueDate && (
+                  <Tooltip title="Due Date">
+                    <Space>
+                      <ClockCircleOutlined />
+                      <Text type="secondary">
+                        {dayjs(item.dueDate).format("DD MMM")}
+                      </Text>
+                    </Space>
+                  </Tooltip>
+                )}
+              </div>
+
+              {/* Task Name */}
+              <Text strong>{item.name}</Text>
+
+              {/* Task Description */}
+
+              <Paragraph
+                ellipsis={{ rows: 2 }}
+                type="secondary"
+                style={{ marginBottom: 8 }}
+              >
+                <FileTextOutlined style={{ marginRight: 8 }} />
+                {item.description || "None"}
+              </Paragraph>
+
+              {/* Assignee */}
+
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                {item.assignees ? (
+                  <Tooltip title={`Assigned to: ${takeName(item.assignees)}`}>
+                    {takeAvatar(item.assignees) ? (
+                      <Avatar
+                        src={takeAvatar(item.assignees)}
+                        alt={takeName(item.assignees)}
+                        title={takeName(item.assignees)}
+                      />
+                    ) : (
+                      <Avatar
+                        key={item.assignees}
+                        style={{
+                          backgroundColor: "#87d068",
+                          cursor: "pointer",
+                        }}
+                        alt={takeName(item.assignees)}
+                        title={takeName(item.assignees)}
+                      >
+                        {takeName(item.assignees)?.charAt(0).toUpperCase()}
+                      </Avatar>
+                    )}
+                  </Tooltip>
+                ) : (
+                  <Tooltip title={`Assigned to: None`}>
+                    <Avatar
+                      src={takeAvatar(item.assignees)}
+                      icon={<UserOutlined />}
+                    />
+                  </Tooltip>
+                )}
+              </div>
+            </Space>
           </div>
         )}
       </Draggable>
@@ -143,6 +207,7 @@ const Item = ({ item, index, fetchAllData }) => {
         takeAvatar={takeAvatar}
         takeName={takeName}
         takeEmail={takeEmail}
+        fetchAllData={fetchAllData}
       />
     </div>
   );

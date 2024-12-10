@@ -262,19 +262,28 @@ const HeaderComponent = () => {
                 maxCount={1}
                 accept="image/*"
               >
-                <Button>Select File</Button>
-                {stateUser?.avatar && (
-                  <img
-                    src={stateUser?.avatar}
-                    alt="avatar"
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                    }}
-                  />
-                )}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column-reverse",
+                    gap: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <Button>Select File</Button>
+                  {stateUser?.avatar && (
+                    <img
+                      src={stateUser?.avatar}
+                      alt="avatar"
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  )}
+                </div>
               </WrapperUploadFile>
             </div>
             <Form form={form} layout="vertical" onFinish={handleUpdateInfo}>

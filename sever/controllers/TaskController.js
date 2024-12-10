@@ -74,24 +74,6 @@ const getDetailTask = async (req, res) => {
     });
   }
 };
-const updateTask = async (req, res) => {
-  try {
-    const taskId = req.params.id;
-    if (!taskId) {
-      return res.status(400).json({
-        status: "ERR",
-        message: "TaskID is required",
-      });
-    }
-    const response = await TaskService.updateTask(taskId, req.body);
-    return res.status(200).json(response);
-  } catch (e) {
-    console.log(e);
-    return res.status(404).json({
-      message: e,
-    });
-  }
-};
 const addSubtask = async (req, res) => {
   try {
     const taskId = req.params.id; //
@@ -213,15 +195,54 @@ const deleteTask = async (req, res) => {
     });
   }
 };
+const addAssigneeTask = async (req, res) => {
+  try {
+    const { taskId, userId } = req.params; // Lấy taskId và subtaskId từ params
+    if (!taskId || !userId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "Input is required",
+      });
+    }
+    const response = await TaskService.addAssigneeTask(taskId, userId);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Something went wrong",
+    });
+  }
+};
+const removeAssigneeTask = async (req, res) => {
+  try {
+    const { taskId, userId } = req.params; // Lấy taskId và subtaskId từ params
+    if (!taskId || !userId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "Input is required",
+      });
+    }
+    const response = await TaskService.removeAssigneeTask(taskId, userId);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Something went wrong",
+    });
+  }
+};
 module.exports = {
   createTask,
   getAllTask,
   getDetailTask,
-  updateTask,
   updateStatusTask,
   updateStatusSubtask,
   addSubtask,
   deleteTasks,
   deleteTask,
   deleteSubTask,
+  addAssigneeTask,
+  removeAssigneeTask,
 };

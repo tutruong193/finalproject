@@ -27,16 +27,18 @@ const ActivityPage = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [projects, setProjects] = useState([]);
   const [notifications, setNotifications] = useState({});
-  console.log(notifications);
   const fetchNotifications = async (projectId) => {
     try {
       const res = await NotificationService.getAllNotificationByIdProject(
         projectId
       );
       if (res.status === "OK" && res.data) {
+        const sortedNotifications = res.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
         setNotifications((prevNotifications) => ({
           ...prevNotifications,
-          [projectId]: res.data,
+          [projectId]: sortedNotifications,
         }));
       }
     } catch (error) {
@@ -47,15 +49,12 @@ const ActivityPage = () => {
       }));
     }
   };
-
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const projectRes = await ProjectService.getAllProject();
         if (projectRes.status === "OK" && projectRes.data) {
           setProjects(projectRes.data);
-
-          // If there are projects, fetch notifications for the first project
           if (projectRes.data.length > 0) {
             const firstProjectId = projectRes.data[0]._id;
             setSelectedProject(firstProjectId);
