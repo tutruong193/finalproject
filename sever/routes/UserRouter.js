@@ -6,13 +6,9 @@ const { authAdminMiddleWare } = require("../middleware/authMiddleware");
 router.post("/login", UserController.loginUser);
 router.post("/logout", UserController.logoutUser);
 router.get("/getall", UserController.getAllUser);
-router.post("/create", authAdminMiddleWare, UserController.createUser);
-router.delete("/delete/:id", authAdminMiddleWare, UserController.deleteUser);
-router.delete(
-  "/delete-many",
-  authAdminMiddleWare,
-  UserController.deleteManyUser
-);
+router.post("/create", UserController.createUser);
+router.delete("/delete/:id", UserController.deleteUser);
+router.delete("/delete-many", UserController.deleteManyUser);
 router.get("/detail/:id", UserController.detailUser);
 router.put("/update/:id", UserController.updateUser);
 //reset password
