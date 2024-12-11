@@ -147,22 +147,7 @@ const updateProject = (id, data) => {
           message: "Project not found",
         });
       }
-      // Kiểm tra xem dữ liệu mới có giống hoàn toàn dữ liệu hiện tại không
-      const isSameData =
-        currentProject.name === name &&
-        currentProject.description === description &&
-        JSON.stringify(currentProject.members) === JSON.stringify(members) &&
-        currentProject.startDate.toISOString() ===
-          new Date(startDate).toISOString() &&
-        currentProject.endDate.toISOString() ===
-          new Date(endDate).toISOString() &&
-        currentProject.status === status;
-      if (isSameData) {
-        return resolve({
-          status: "ERR",
-          message: "No changes detected, project remains the same.",
-        });
-      }
+      // Kiểm tra tên dự án có bị trùng không
       const checkName = await Project.findOne({ name: name, _id: { $ne: id } });
       if (checkName) {
         return resolve({
@@ -170,28 +155,43 @@ const updateProject = (id, data) => {
           message: "The project name is already in use by another project.",
         });
       }
+
+      // Kiểm tra tính hợp lệ của các members (kiểm tra chỉ ID người dùng)
       const validMembers = await Promise.all(
-        members.map(async (member) => {
-          const user = await User.findById(member.userId);
+        members.map(async (userId) => {
+          const user = await User.findById(userId); // Chỉ tìm theo userId
           if (user && user.role.includes("member")) {
-            return { userId: member.userId, name: user.name, role: user.role };
+            return userId; // Chỉ trả về ID người dùng hợp lệ
           } else {
             return null;
           }
         })
       );
+
+      // Kiểm tra nếu có ID người dùng không hợp lệ
       if (validMembers.includes(null)) {
         return resolve({
           status: "ERR",
           message: "One or more members are invalid or have an incorrect role",
         });
       }
+      const tasks = await Task.find({ projectId: id });
+      const invalidTask = tasks.find(
+        (task) => new Date(task.dueDate) > new Date(endDate)
+      );
+      if (invalidTask) {
+        return resolve({
+          status: "ERR",
+          message: `Task ${invalidTask.name} has a dueDate greater than the new project's endDate, you need to delete this task`,
+        });
+      }
+
       currentProject.name = name;
       currentProject.description = description;
       currentProject.members = validMembers;
-      currentProject.startDate = new Date(startDate); // Đảm bảo là đối tượng Date
-      currentProject.endDate = new Date(endDate); // Đảm bảo là đối tượng Date
-      currentProject.status = status;
+      currentProject.startDate = new Date(startDate);
+      currentProject.endDate = new Date(endDate);
+
       const updatedProject = await currentProject.save();
       if (updatedProject) {
         await NotificationService.createNotification(
@@ -205,15 +205,15 @@ const updateProject = (id, data) => {
         });
       }
     } catch (e) {
-      // Trả về lỗi nếu có ngoại lệ xảy ra
       return reject({
         status: "ERR",
-        message: "An error occurred during project creation",
+        message: "An error occurred during project update",
         error: e,
       });
     }
   });
 };
+
 const addMemberToProject = (id, userId) => {
   return new Promise(async (resolve, reject) => {
     try {

@@ -166,12 +166,6 @@ const updateProject = async (req, res) => {
         message: "Start date and end date cannot be the same",
       });
     }
-    if (start < now || end < now) {
-      return res.status(200).json({
-        status: "ERR",
-        message: "Start date and end date must be after the current date",
-      });
-    }
     const response = await ProjectService.updateProject(projectId, {
       ...req.body,
       startDate: start.toISOString(), // Chuyển đổi về định dạng UTC

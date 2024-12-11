@@ -634,7 +634,7 @@ p {
 }
 
 /* tablelist, phần model */
-.task-modal .modal-header {
+/* .task-modal .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -760,16 +760,219 @@ p {
   cursor: pointer;
   margin-left: 12px;
 }
-
-/*status của cái trạng thái*/
-
-/* Kiểu dáng chung cho Select */
-/* Chuyển đổi mượt mà cho tất cả trạng thái */
 .ant-select-selector {
   transition: all 0.3s ease;
 }
 
-/* Màu nền cho từng trạng thái */
+.status-select.progress .ant-select-selector {
+  color: #f7cc53;
+  background-color: rgba(247, 204, 83, .1);
+}
+
+.status-select.done .ant-select-selector {
+  color: #51d28c;
+  background-color: rgba(81, 210, 140, .1);
+}
+
+.status-select.todo .ant-select-selector {
+  color: #f34e4e;
+  background-color: rgba(243, 78, 78, .1);
+} */
+/* Base Styles */
+.task-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.task-modal .modal-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-modal .modal-title span {
+  display: block;
+}
+
+.task-modal .modal-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.task-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0 24px;
+}
+
+.task-modal .main-content {
+  flex: 1;
+}
+
+.task-modal .sidebar {
+  width: 100%;
+}
+
+/* Responsive Breakpoints */
+@media screen and (min-width: 768px) {
+  .task-modal .modal-title {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .task-modal .modal-content {
+    flex-direction: row;
+    gap: 24px;
+  }
+
+  .task-modal .sidebar {
+    width: 300px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .task-modal .modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .task-modal .modal-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .task-modal .modal-header {
+    padding: 16px 16px;
+  }
+
+  .task-modal .modal-content {
+    padding: 0 16px;
+  }
+}
+
+/* Field Styles */
+.task-modal .field-group {
+  margin-bottom: 16px;
+}
+
+.task-modal .field-label {
+  color: #6B778C;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.task-modal .field-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.field-value.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Action Buttons */
+.task-modal .action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+}
+
+.task-modal .action-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  color: #42526E;
+}
+
+.task-modal .action-button:hover {
+  background: #f5f5f5;
+}
+
+/* Comment Section */
+.comment-container {
+  background-color: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.user-avatar {
+  margin-right: 12px;
+}
+
+.comment-info h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.comment-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #6B778C;
+}
+
+.comment-content {
+  margin-bottom: 12px;
+}
+
+.comment-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.edit-btn,
+.delete-btn {
+  background-color: transparent;
+  color: #6B778C;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+/* Responsive Component Adjustments */
+.ant-select {
+  width: 100% !important;
+  max-width: 300px;
+}
+
+.ant-avatar {
+  flex-shrink: 0;
+}
+
+/* Status Select Styles */
+.ant-select-selector {
+  transition: all 0.3s ease;
+}
+
 .status-select.progress .ant-select-selector {
   color: #f7cc53;
   background-color: rgba(247, 204, 83, .1);
@@ -785,6 +988,16 @@ p {
   background-color: rgba(243, 78, 78, .1);
 }
 
+/* Print Styles */
+@media print {
+  .task-modal .modal-actions,
+  .task-modal .action-buttons,
+  .comment-actions {
+    display: none;
+  }
+}
+
+/* Existing status and comment styles remain the same */
 /*boardpage và phần con của nó*/
 .board-container {
   display: flex;

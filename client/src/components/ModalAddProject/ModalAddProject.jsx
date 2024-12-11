@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   Form,
@@ -19,7 +19,8 @@ import {
   CalendarOutlined,
   TagOutlined,
 } from "@ant-design/icons";
-
+import * as ProjectService from "../../services/ProjectService";
+import moment from "moment";
 const { Text } = Typography;
 const { TextArea } = Input;
 
@@ -36,6 +37,17 @@ const AddProjectModal = ({
   form,
   options,
 }) => {
+  const [project, setProject] = useState();
+  const fetchProjects = async () => {
+    const id = localStorage.getItem("projectId");
+    const res = await ProjectService.getDetailProjectProject(id);
+    if (res.status === "OK") {
+      setProject(res.data);
+    }
+  };
+  useEffect(() => {
+    fetchProjects();
+  }, []);
   return (
     <Modal
       title={
@@ -120,6 +132,14 @@ const AddProjectModal = ({
             style={{ width: "100%" }}
             placeholder="Select due date"
             prefix={<CalendarOutlined />}
+            disabledDate={(current) => {
+              // Kiểm tra nếu current nằm ngoài khoảng startDate và endDate
+              return (
+                current &&
+                (current < moment(project?.startDate) ||
+                  current > moment(project?.endDate))
+              );
+            }}
           />
         </Form.Item>
 

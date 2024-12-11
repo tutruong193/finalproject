@@ -16,6 +16,7 @@ import {
   DatePicker,
   Select,
 } from "antd";
+import moment from "moment";
 import * as UserService from "../../services/UserService";
 import * as ProjectService from "../../services/ProjectService";
 import { useNavigate } from "react-router-dom";
@@ -151,11 +152,7 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const handleChangeSelectMember = (value) => {
-    const selectedMembers = value.map((userId) => {
-      const selectedUser = userData.find((user) => user.value === userId);
-      return { userId, name: selectedUser.label }; // Lưu cả userId và name
-    });
-    setSelectedMembers(selectedMembers);
+    setSelectedMembers(value);
   };
   const handleEdit = () => {
     setIsEditModalVisible(true);
@@ -170,16 +167,16 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   const handleSaveEdit = async () => {
     try {
       const updateProject = {
-        ...formEdit.getFieldsValue(), // Lấy các giá trị khác từ form
-        members: selectedMembers, // Ghi đè members bằng selectedMembers từ state
+        ...formEdit.getFieldsValue(),
+        members: selectedMembers,
       };
       const res = await ProjectService.updateProject(projectId, updateProject); // Gọi hàm cập nhật
       if (res.status === "OK") {
         formEdit.resetFields();
         setIsEditModalVisible(false);
-        Message.success(res.message);
+        Message.success();
         projectQuerry.refetch();
-        setTimeout(window.location.reload(), 3000);
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         Message.error(res.message);
       }
@@ -191,6 +188,7 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
   const handleCancelEdit = () => {
     setIsEditModalVisible(false);
   };
+  console.log(userData);
   return (
     <div>
       <Card
@@ -314,32 +312,33 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
             <Input.TextArea name="description" />
           </Form.Item>
           <Form.Item label="Start Date" name="startDate">
-            <DatePicker name="startDate" />
+            <DatePicker
+              name="startDate"
+              disabledDate={(current) => {
+                // Không cho phép chọn ngày trước hôm nay
+                return current && current < moment().startOf("day");
+              }}
+              disabled={new Date() > new Date(stateProject.startDate)}
+            />
           </Form.Item>
           <Form.Item label="End Date" name="endDate">
-            <DatePicker name="endDate" />
+            <DatePicker
+              name="endDate"
+              disabledDate={(current) => {
+                // Không cho phép chọn ngày trước hôm nay
+                return current && current < moment().startOf("day");
+              }}
+            />
           </Form.Item>
           <Form.Item label="Members">
             <Select
               defaultValue={stateProject.members}
               mode="multiple"
               onChange={handleChangeSelectMember}
-              options={
-                stateProject.members.length > 0
-                  ? stateProject.members
-                  : userData
-              }
+              options={userData}
               placeholder="Select members"
               style={{ width: "100%" }}
             />
-          </Form.Item>
-
-          <Form.Item label="Status" name="status">
-            <Select name="status">
-              <Select.Option value="pending">Pending</Select.Option>
-              <Select.Option value="progress">In Progress</Select.Option>
-              <Select.Option value="completed">Completed</Select.Option>
-            </Select>
           </Form.Item>
         </Form>
       </Modal>

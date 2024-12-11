@@ -15,11 +15,8 @@ import {
   Row,
 } from "antd";
 import { useLocation } from "react-router-dom";
-import {
-  EditOutlined,
-  PaperClipOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+import { TagOutlined, CalendarOutlined, PlusOutlined } from "@ant-design/icons";
+import moment from "moment";
 import dayjs from "dayjs";
 import * as TaskService from "../../services/TaskService";
 import * as CommentService from "../../services/CommentService";
@@ -277,7 +274,7 @@ const ModelDetailTask = ({
               disabled={isExpired}
               value={selectedTask?.status}
               style={{
-                width: 120,
+                width: "fit-content",
               }}
               onChange={(value) => onChangeStatusTask(value)}
               className={`status-select ${selectedTask?.status}`}
@@ -639,14 +636,26 @@ const ModelDetailTask = ({
               { required: true, message: "Please input the subtask name!" },
             ]}
           >
-            <Input placeholder="Enter subtask name" />
+            <Input placeholder="Enter subtask name" prefix={<TagOutlined />} />
           </Form.Item>
           <Form.Item
             name="dueDate"
             label="Due Date"
             rules={[{ required: true, message: "Please input the due date!" }]}
           >
-            <DatePicker style={{ width: "100%" }} />
+            <DatePicker
+              style={{ width: "100%" }}
+              placeholder="Select due date"
+              prefix={<CalendarOutlined />}
+              disabledDate={(current) => {
+                // Kiểm tra nếu current nằm ngoài khoảng startDate và endDate
+                return (
+                  current &&
+                  (current < moment(project?.startDate) ||
+                    current > moment(selectedTask?.dueDate))
+                );
+              }}
+            />
           </Form.Item>
         </Form>
       </Modal>
