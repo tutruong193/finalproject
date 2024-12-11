@@ -24,7 +24,6 @@ import { useCookies } from "react-cookie";
 import * as Message from "../../components/MessageComponent/MessageComponent";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import avatar from "../../assets/avatar.jpg";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
@@ -45,7 +44,6 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
     useCookies("");
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
   const isManager = infoUser?.role === "manager";
-  console.log(isManager)
   const navigate = useNavigate();
   const [stateProject, setStateProject] = useState({
     name: "",
@@ -55,6 +53,8 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
     status: "",
     members: [],
   });
+  //kiem tra xem het han hay chua
+  const isExpired = new Date() > new Date(stateProject?.endDate);
   //lấy dữ liệu để set name và avatar
   const [userList, setUserList] = useState([]);
   const takAvatar = (id) => {
@@ -196,6 +196,7 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
       <Card
         title={<div onClick={handleCardClick}>{stateProject?.name}</div>}
         extra={
+          !isExpired &&
           isManager && (
             <Popover
               trigger="click"
@@ -214,8 +215,8 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
                     Edit
                   </Button>
                   <Popconfirm
-                    title="Delete the task"
-                    description="Are you sure to delete this task?"
+                    title="Delete the project"
+                    description="Are you sure to delete this project?"
                     onConfirm={handleDelete}
                     okText="Yes"
                     cancelText="No"
@@ -278,7 +279,8 @@ const ProjectCardComponent = ({ projectId, projectQuerry }) => {
           <div
             style={{
               width: "fit-content",
-              padding: "0px 20px",
+              padding:
+                stateProject?.status === "incompleted" ? "0px 5px" : "0px 20px",
               backgroundColor:
                 tags.find((tag) => tag.status === stateProject?.status)
                   ?.backgroundColor || "gray",

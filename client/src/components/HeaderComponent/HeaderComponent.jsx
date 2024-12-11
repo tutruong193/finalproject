@@ -117,6 +117,7 @@ const HeaderComponent = () => {
           email: stateUser.email,
           phone: stateUser?.phone,
         });
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         Message.error(res.message);
       }
@@ -261,6 +262,7 @@ const HeaderComponent = () => {
                 onChange={handleOnchangeAvatarDetails}
                 maxCount={1}
                 accept="image/*"
+                maxSize={10 * 1024 * 1024}
               >
                 <div
                   style={{

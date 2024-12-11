@@ -51,6 +51,7 @@ const ListPage = () => {
   const [stateProject, setStateProject] = useState([]);
   const [userData, setUserData] = useState([]);
   const projectId = localStorage.getItem("projectId");
+  const isExpired = new Date() > new Date(stateProject?.endDate);
   const fetchTaskDataAndMemberList = async () => {
     try {
       const [projectRes, userRes] = await Promise.all([
@@ -263,7 +264,8 @@ const ListPage = () => {
               )
             )}
           </Avatar.Group>
-          {isManager && (
+
+          {!isExpired && isManager && (
             <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
           )}
           <AddPeopleModal
@@ -280,7 +282,7 @@ const ListPage = () => {
             takeEmail={takeEmail}
           />
         </div>
-        {isManager && (
+        {!isExpired && isManager && (
           <div className="toolbar-right">
             <Button
               icon={<PlusOutlined />}
@@ -303,7 +305,6 @@ const ListPage = () => {
       <div className="task-card-container">
         <TableListView
           taskQuery={taskQuery}
-          // data={Array.isArray(tasks?.data) ? tasks.data : []}
           data={filteredDataTable}
           onRowSelectionChange={(selectedKeys) =>
             setSelectedTaskIds(selectedKeys)

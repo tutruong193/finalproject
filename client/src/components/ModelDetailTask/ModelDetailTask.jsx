@@ -47,9 +47,6 @@ const ModelDetailTask = ({
     month: "long",
     year: "numeric",
   };
-  const location = useLocation();
-  // const defaultSelectedKey = isAdmin ? "admin_dashboard" : "user_project_board";
-  const lastpath = location.pathname.split("/").pop();
   const renderDate = (date) => {
     if (!date) return "N/A";
     const parsedDate = new Date(date);
@@ -58,7 +55,10 @@ const ModelDetailTask = ({
       parsedDate
     );
   };
-  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  // const defaultSelectedKey = isAdmin ? "admin_dashboard" : "user_project_board";
+  const lastpath = location.pathname.split("/").pop();
+
   //lấy dữ liệu
   const [selectedTask, setSelectedTask] = useState();
   const fetchComments = async (id) => {
@@ -68,13 +68,13 @@ const ModelDetailTask = ({
     }
   };
   const fetchTaskData = async (id) => {
-    setLoading(true);
     const res = await TaskService.getDetailTask(id);
     if (res.status === "OK") {
       setSelectedTask(res.data);
     }
   };
   const [project, setProject] = useState();
+  const isExpired = new Date() > new Date(project?.endDate);
   const fetchProjects = async () => {
     const id = localStorage.getItem("projectId");
     const res = await ProjectService.getDetailProjectProject(id);
@@ -274,6 +274,7 @@ const ModelDetailTask = ({
           </div>
           <div className="modal-actions">
             <Select
+              disabled={isExpired}
               value={selectedTask?.status}
               style={{
                 width: 120,
@@ -295,13 +296,15 @@ const ModelDetailTask = ({
                 },
               ]}
             />
-            {isManager && <Button onClick={deleteTask}>Delete</Button>}
+            {!isExpired && isManager && (
+              <Button onClick={deleteTask}>Delete</Button>
+            )}
           </div>
         </div>
 
         <div className="modal-content">
           <div className="main-content">
-            {isManager && (
+            {!isExpired && isManager && (
               <div className="action-buttons">
                 <button className="action-button" onClick={showSubtaskModal}>
                   <PlusOutlined /> Add a child issue
@@ -340,7 +343,9 @@ const ModelDetailTask = ({
                         }}
                       >
                         <span>{subtask.name}</span>
-                        <span>{renderDate(subtask.dueDate)}</span>{" "}
+                        <span className="task-date">
+                          {renderDate(subtask.dueDate)}
+                        </span>{" "}
                       </div>
                       <div
                         style={{
@@ -350,6 +355,7 @@ const ModelDetailTask = ({
                         }}
                       >
                         <Select
+                          disabled={isExpired}
                           value={subtask?.status}
                           style={{
                             width: 120,
@@ -373,7 +379,7 @@ const ModelDetailTask = ({
                             },
                           ]}
                         />
-                        {isManager && (
+                        {!isExpired && isManager && (
                           <Button onClick={() => deleteSubtask(subtask._id)}>
                             Delete
                           </Button>
@@ -386,6 +392,7 @@ const ModelDetailTask = ({
             </div>
             <div className="comment-section">
               <Typography.Title level={5}>Comments</Typography.Title>
+
               <div
                 style={{
                   backgroundColor: "#fff",
@@ -394,29 +401,31 @@ const ModelDetailTask = ({
                   borderRadius: "4px",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <Input.TextArea
-                      placeholder="Add a comment..."
-                      rows={2}
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    type="primary"
-                    onClick={handleSaveComment}
-                    disabled={!newComment.trim()} // Disable when input is empty
+                {!isExpired && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "flex-start",
+                    }}
                   >
-                    Save
-                  </Button>
-                </div>
+                    <div style={{ flex: 1 }}>
+                      <Input.TextArea
+                        placeholder="Add a comment..."
+                        rows={2}
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      type="primary"
+                      onClick={handleSaveComment}
+                      disabled={!newComment.trim()} // Disable when input is empty
+                    >
+                      Save
+                    </Button>
+                  </div>
+                )}
                 {comments?.length > 0 && (
                   <div className="comment-container">
                     {comments.map((comment) => (
@@ -443,7 +452,7 @@ const ModelDetailTask = ({
                           </div>
                         </div>
                         <div className="comment-content">{comment.content}</div>
-                        {infoUser.id === comment?.author && (
+                        {!isExpired && infoUser.id === comment?.author && (
                           <div className="comment-actions">
                             <button
                               className="delete-btn"
@@ -463,7 +472,7 @@ const ModelDetailTask = ({
           <div className="sidebar">
             <div className="field-group">
               <div className="field-label">Assignee</div>
-              <div className="field-value">
+              <div className={`field-value ${isExpired ? "disabled" : ""}`}>
                 {selectedTask?.assignees ? (
                   <>
                     {takeAvatar(selectedTask?.assignees) ? (
@@ -494,7 +503,7 @@ const ModelDetailTask = ({
 
                     <div>
                       <span>{takeName(selectedTask?.assignees)}</span>
-                      {isManager && (
+                      {!isExpired && isManager && (
                         <Button
                           type="text"
                           danger
@@ -570,7 +579,7 @@ const ModelDetailTask = ({
             </div>
             <div className="field-group">
               <div className="field-label">Due Date</div>
-              <div className="field-value">
+              <div className="field-value task-date">
                 {renderDate(selectedTask?.dueDate)}
               </div>
             </div>

@@ -683,6 +683,11 @@ p {
   gap: 8px;
 }
 
+.field-value.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 .task-modal .action-buttons {
   display: flex;
   gap: 8px;

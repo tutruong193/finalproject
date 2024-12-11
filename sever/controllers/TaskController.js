@@ -96,7 +96,6 @@ const addSubtask = async (req, res) => {
 const deleteTasks = async (req, res) => {
   try {
     const { taskIds } = req.body;
-    console.log(taskIds);
     if (!taskIds) {
       return res.status(400).json({
         status: "ERR",

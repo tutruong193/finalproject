@@ -332,21 +332,18 @@ const checkProjects = async () => {
     const projectsInProgress = await Project.find({
       status: "progress",
     });
-
     for (let project of projectsInProgress) {
       if (project.endDate < now) {
         const projectTasks = await Task.find({ projectId: project._id });
-
         const allTasksCompleted = projectTasks.every(
-          (task) => task.status === "completed"
+          (task) => task.status === "done"
         );
-
         if (allTasksCompleted) {
           await NotificationService.createNotification(
             projectsInProgress?._id,
-            `Project ${projectsInProgress?.name} is completed`
+            `Project ${projectsInProgress?.name} is done`
           );
-          project.status = "completed";
+          project.status = "done";
         } else {
           project.status = "incompleted";
           await NotificationService.createNotification(
@@ -354,7 +351,6 @@ const checkProjects = async () => {
             `Project ${projectsInProgress?.name} is incompleted`
           );
         }
-
         await project.save();
       }
     }
@@ -377,7 +373,7 @@ const checkProjects = async () => {
   }
 };
 
-setInterval(checkProjects, 60 * 1000);
+setInterval(checkProjects, 1000);
 module.exports = {
   createProject,
   getAllProject,

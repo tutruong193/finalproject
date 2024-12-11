@@ -256,23 +256,18 @@ const updateStatusSubtask = async (taskId, subtaskId, userId, status) => {
           });
         }
       }
-      const currentDate = new Date();
-      const canUpdateStatus =
-        project.status === "progress" ||
-        (project.status === "done" && currentDate < project.endDate);
-
-      if (!canUpdateStatus) {
-        return resolve({
-          status: "ERR",
-          message:
-            "Cannot update task as project is not in progress or beyond allowed end date.",
-        });
-      }
       const subtask = task.subtasks.id(subtaskId);
       if (!subtask) {
         return resolve({
           status: "ERR",
           message: "Subtask not found",
+        });
+      }
+      const currentDate = new Date();
+      if (!(currentDate < subtask.dueDate)) {
+        return resolve({
+          status: "ERR",
+          message: "Subtask out of date",
         });
       }
       if (status === "done") {
@@ -283,9 +278,18 @@ const updateStatusSubtask = async (taskId, subtaskId, userId, status) => {
         if (isAllSubtaskDone) {
           task.status = "done";
         }
-      } else {
-        (subtask.status = status), (task.status = "progress");
       }
+      if (status === "progress") {
+        subtask.status = "progress";
+        task.status = "progress";
+      }
+      if (status === "todo") {
+        subtask.status = "todo";
+        if (task.status === "done") {
+          task.status = "progress";
+        }
+      }
+      await task.save();
       const tasks = await Task.find({
         projectId: task.projectId,
       });
@@ -295,12 +299,16 @@ const updateStatusSubtask = async (taskId, subtaskId, userId, status) => {
         await Project.findByIdAndUpdate(task.projectId, {
           status: "done",
         });
+      } else {
+        await Project.findByIdAndUpdate(task.projectId, {
+          status: "progress",
+        });
       }
+      const user = await User.findById(userId);
       await NotificationService.createNotification(
         project?._id,
-        `Project ${project?.name} update ${subtask.name} subtask status`
+        `${user.name} update ${subtask.name} subtask status`
       );
-      await task.save();
       resolve({
         status: "OK",
         message: "Subtask status updated successfully",
@@ -332,7 +340,7 @@ const updateStatusTask = async (taskId, userId, status) => {
         });
       }
       if (project.managerID.toString() !== userId) {
-        if (!task.assignees) {
+        if (task.assignees === null) {
           return resolve({
             status: "ERR",
             message: "This task not assigned to anyone",
@@ -346,15 +354,10 @@ const updateStatusTask = async (taskId, userId, status) => {
         }
       }
       const currentDate = new Date();
-      const canUpdateStatus =
-        project.status === "progress" ||
-        (project.status === "done" && currentDate < project.endDate);
-
-      if (!canUpdateStatus) {
+      if (!(currentDate < task.dueDate)) {
         return resolve({
           status: "ERR",
-          message:
-            "Cannot update task as project is not in progress or beyond allowed end date.",
+          message: "Task out of date",
         });
       }
       if (task.subtasks && task.subtasks.length > 0) {
@@ -369,7 +372,16 @@ const updateStatusTask = async (taskId, userId, status) => {
             });
           }
           task.status = status;
-        } else {
+        }
+        if (status === "progress") {
+          task.status = "progress";
+          task.subtasks.forEach((subtask) => {
+            if (subtask.status === "done") {
+              subtask.status = "progress";
+            }
+          });
+        }
+        if (status === "todo") {
           task.status = status;
           task.subtasks.forEach((subtask) => {
             subtask.status = status;
@@ -378,6 +390,7 @@ const updateStatusTask = async (taskId, userId, status) => {
       } else {
         task.status = status;
       }
+      await task.save();
       const tasks = await Task.find({
         projectId: task.projectId,
       });
@@ -387,11 +400,15 @@ const updateStatusTask = async (taskId, userId, status) => {
         await Project.findByIdAndUpdate(task.projectId, {
           status: "done",
         });
+      } else {
+        await Project.findByIdAndUpdate(task.projectId, {
+          status: "progress",
+        });
       }
-      await task.save();
+      const user = await User.findById(userId);
       await NotificationService.createNotification(
         project?._id,
-        `Project ${project?.name} update ${task.name} task status`
+        `${user.name} update ${task.name} task status`
       );
       resolve({
         status: "OK",
@@ -449,6 +466,13 @@ const addAssigneeTask = async (taskId, userId) => {
           message: "This task already has member",
         });
       }
+      const currentDate = new Date();
+      if (!(currentDate < task.dueDate)) {
+        return resolve({
+          status: "ERR",
+          message: "Task out of date to assign",
+        });
+      }
       task.assignees = userId;
       if (task.subtasks && task.subtasks.length > 0) {
         for (const subtask of task.subtasks) {
@@ -496,9 +520,14 @@ const removeAssigneeTask = async (taskId, userId) => {
           message: "This task already has no member",
         });
       }
-
+      const currentDate = new Date();
+      if (!(currentDate < task.dueDate)) {
+        return resolve({
+          status: "ERR",
+          message: "Task out of date to remove assignee",
+        });
+      }
       task.assignees = null;
-
       if (task.subtasks && task.subtasks.length > 0) {
         for (const subtask of task.subtasks) {
           if (subtask.assignees && subtask.assignees === userId) {

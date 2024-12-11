@@ -14,7 +14,7 @@ import {
 import * as TaskService from "../../services/TaskService";
 import {
   ClockCircleOutlined,
-  FlagOutlined,
+  DeploymentUnitOutlined,
   UserOutlined,
   FileTextOutlined,
   PlusCircleFilled,
@@ -115,29 +115,17 @@ const Item = ({ item, index, fetchAllData }) => {
                 }}
               >
                 <div>
-                  {item.subtasks && item.subtasks.length > 0 ? (
-                    <>
-                      <Tag color={"blue"} style={{ marginBottom: "4px" }}>
-                        Task
-                      </Tag>
-                      <Tag color={"green"} style={{ marginBottom: "4px" }}>
-                        Subtask
-                      </Tag>
-                    </>
-                  ) : (
-                    <Tag color={"blue"} style={{ marginBottom: "4px" }}>
-                      Task
-                    </Tag>
-                  )}
+                  <Tag color={"blue"} style={{ marginBottom: "4px" }}>
+                    Task
+                  </Tag>
                 </div>
 
                 {/* Due Date */}
                 {item.dueDate && (
                   <Tooltip title="Due Date">
                     <Space>
-                      <ClockCircleOutlined />
-                      <Text type="secondary">
-                        {dayjs(item.dueDate).format("DD MMM")}
+                      <Text type="secondary" className="task-date">
+                        {renderDate(item.dueDate)}
                       </Text>
                     </Space>
                   </Tooltip>
@@ -160,7 +148,25 @@ const Item = ({ item, index, fetchAllData }) => {
 
               {/* Assignee */}
 
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "20px",
+                }}
+              >
+                {" "}
+                {item.subtasks && item.subtasks.length > 0 ? (
+                  <Tooltip
+                    title={`${
+                      item.subtasks.filter((s) => s.status === "done").length
+                    } of ${item.subtasks.length} child issues done`}
+                  >
+                    <DeploymentUnitOutlined
+                      style={{ opacity: 0.5, fontSize: 20 }}
+                    />
+                  </Tooltip>
+                ) : null}
                 {item.assignees ? (
                   <Tooltip title={`Assigned to: ${takeName(item.assignees)}`}>
                     {takeAvatar(item.assignees) ? (

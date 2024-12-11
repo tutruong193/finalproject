@@ -51,6 +51,7 @@ const BoardPage = () => {
   const [userData, setUserData] = useState([]);
   const [cookiesAccessToken] = useCookies("");
   const infoUser = jwtTranslate(cookiesAccessToken.access_token);
+  const isExpired = new Date() > new Date(stateProject?.endDate);
   const isManager = infoUser?.role === "manager";
   const fetchAllData = async () => {
     try {
@@ -325,7 +326,7 @@ const BoardPage = () => {
               )
             )}
           </Avatar.Group>
-          {isManager && (
+          {!isExpired && isManager && (
             <Avatar icon={<PlusOutlined />} onClick={showModalAddPeople} />
           )}
         </div>
@@ -343,7 +344,7 @@ const BoardPage = () => {
           takeEmail={takeEmail}
         />
         <div className="toolbar-right">
-          {isManager && (
+          {!isExpired && isManager && (
             <Button
               icon={<PlusOutlined />}
               className="action_button"
@@ -354,7 +355,7 @@ const BoardPage = () => {
           )}
         </div>
       </div>
-      <DragDropContext onDragEnd={onDragEnd}>
+      <DragDropContext onDragEnd={isExpired ? undefined : onDragEnd}>
         <div className="board-columns">
           {Object.entries(columns).map(([columnId, column]) => (
             <Column

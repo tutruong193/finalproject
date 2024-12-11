@@ -1,5 +1,6 @@
 import axios from "axios";
-const axiosJWT = axios.create();
+import Cookies from "js-cookie";
+const access_token = Cookies.get("access_token");
 export const loginUser = async (data) => {
   const res = await axios.post(
     `${process.env.REACT_APP_API_URL}/api/user/login`,
@@ -20,33 +21,43 @@ export const getAllUser = async () => {
   return res.data;
 };
 export const createUser = async (data) => {
-  const res = await axiosJWT.post(
+  const res = await axios.post(
     `${process.env.REACT_APP_API_URL}/api/user/create`,
-    data
-    // ,{
-    //   headers: {
-    //     token: `Bearer ${access_token}`,
-    //   },
-    // }
+    data,
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
   );
   return res.data;
 };
 export const deleteUser = async (id) => {
-  const res = await axiosJWT.delete(
-    `${process.env.REACT_APP_API_URL}/api/user/delete/${id}`
+  const res = await axios.delete(
+    `${process.env.REACT_APP_API_URL}/api/user/delete/${id}`,
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
   );
   return res.data;
 };
 export const deleteManyUser = async (ids) => {
-  const res = await axiosJWT.delete(
+  const res = await axios.delete(
     `${
       process.env.REACT_APP_API_URL
-    }/api/user/delete-many?selectedManyKeys=${ids.join(",")}`
+    }/api/user/delete-many?selectedManyKeys=${ids.join(",")}`,
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
   );
   return res.data;
 };
 export const getDetailsUser = async (id) => {
-  const res = await axiosJWT.get(
+  const res = await axios.get(
     `${process.env.REACT_APP_API_URL}/api/user/detail/${id}`
   );
   return res.data;

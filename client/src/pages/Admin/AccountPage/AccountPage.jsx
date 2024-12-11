@@ -283,10 +283,8 @@ const AccountPage = () => {
       <div className="container_admin_account">
         <div className="container_admin_account_title">
           <h2>User management</h2>
-          <span>Manage the accounts here</span>
         </div>
         <div className="container_admin_account_header">
-          <span>All Users</span>
           <div
             style={{
               display: "flex",
@@ -321,6 +319,8 @@ const AccountPage = () => {
             rowSelection={rowSelection}
             pagination={{ className: "table-pagination" }}
             bordered
+            virtual
+            scroll
           />
         </div>
       </div>

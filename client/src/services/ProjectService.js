@@ -1,5 +1,7 @@
 import axios from "axios";
 // const axiosJWT = axios.create();
+import Cookies from "js-cookie";
+const access_token = Cookies.get("access_token");
 export const getAllProject = async () => {
   const res = await axios.get(
     `${process.env.REACT_APP_API_URL}/api/project/getall`
@@ -9,20 +11,35 @@ export const getAllProject = async () => {
 export const createProject = async (data) => {
   const res = await axios.post(
     `${process.env.REACT_APP_API_URL}/api/project/create`,
-    data
+    data,
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
   );
   return res.data;
 };
 export const deleteProject = async (projectId) => {
   const res = await axios.delete(
-    `${process.env.REACT_APP_API_URL}/api/project/delete/${projectId}`
+    `${process.env.REACT_APP_API_URL}/api/project/delete/${projectId}`,
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
   );
   return res.data;
 };
 export const updateProject = async (projectId, data) => {
   const res = await axios.put(
     `${process.env.REACT_APP_API_URL}/api/project/update/${projectId}`,
-    data
+    data,
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
   );
   return res.data;
 };
@@ -35,14 +52,24 @@ export const getDetailProjectProject = async (projectId) => {
 export const AddMember = async (projectId, userId) => {
   const res = await axios.put(
     `${process.env.REACT_APP_API_URL}/api/project/addmember/${projectId}`,
-    { userId }
+    { userId },
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
   );
   return res.data;
 };
 export const DeleteMember = async (projectId, userId) => {
   const res = await axios.put(
     `${process.env.REACT_APP_API_URL}/api/project/deletemember/${projectId}`,
-    { userId }
+    { userId },
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
   );
   return res.data;
 };
